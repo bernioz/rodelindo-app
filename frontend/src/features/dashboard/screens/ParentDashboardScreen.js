@@ -1,13 +1,24 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 
+// Al inicio del archivo agrega el import del useAuth:
+import { useAuth } from '../../../context/AuthContext';
+
 export default function ParentDashboardScreen() {
+  // Dentro del componente, antes del return:
+  const { user, logout } = useAuth();
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
+
       <View style={styles.header}>
-        <Text style={styles.title}>Hola, familia López 👋</Text>
-        <Text style={styles.subtitle}>Mateo · Categoría Sub-12</Text>
+        <View>
+          <Text style={styles.title}>Hola, familia López 👋</Text>
+          <Text style={styles.subtitle}>Mateo · Categoría Sub-12</Text>
+        </View>
+        <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Alerta de Pago */}
@@ -60,6 +71,16 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 24,
   },
+  logoutBtn: {
+  backgroundColor: '#151B23',
+  borderWidth: 1,
+  borderColor: '#2A3341',
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+  borderRadius: 8,
+},
+logoutText: { color: '#8A93A3', fontSize: 13 },
+
   title: {
     color: '#F5F7FA',
     fontSize: 26,
