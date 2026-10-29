@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
@@ -8,7 +8,7 @@ import ScreenHeader from '../../../components/ScreenHeader';
 
 const MEDALLAS = ['🥇', '🥈', '🥉'];
 
-export default function RankingScreen() {
+export default function RankingScreen({ navigation }) {
   const { user } = useAuth();
   const { theme, fontSize } = useTheme();
   const { getByCategoria } = useAlumnos();
@@ -29,17 +29,29 @@ export default function RankingScreen() {
 
   const fs = (s) => s * fontSize;
 
+  const verPerfilAlumno = (item, esTuyo) => {
+    if (esTuyo) {
+      navigation.navigate('PerfilTab');
+    } else {
+      navigation.navigate('PerfilCompanero', { alumnoId: item.id });
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <ScreenHeader
         title={`Ranking ${user.categoria ?? 'Sub-12'}`}
-        subtitle="Asistencia · Temporada 2025"
+        subtitle="Asistencia · Temporada 2026"
       />
 
       {/* Tu posición */}
       {alumno && (
-        <View style={[styles.miPosicion, { backgroundColor: theme.accentDark }]}>
-          <Text style={[styles.miPosLabel, { fontSize: fs(12) }]}>Tu posición</Text>
+        <TouchableOpacity
+          style={[styles.miPosicion, { backgroundColor: theme.accentDark }]}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('PerfilTab')}
+        >
+          <Text style={[styles.miPosLabel, { fontSize: fs(12) }]}>Tu posición (Toca para ver)</Text>
           <View style={styles.miPosRow}>
             <Text style={[styles.miPosNum, { fontSize: fs(36) }]}>
               {posicion <= 3 ? MEDALLAS[posicion - 1] : `#${posicion}`}
@@ -58,7 +70,7 @@ export default function RankingScreen() {
               </Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       )}
 
       <FlatList
@@ -68,11 +80,15 @@ export default function RankingScreen() {
         renderItem={({ item, index }) => {
           const esTuyo = item.id === user.alumnoId;
           return (
-            <View style={[
-              styles.rankRow,
-              { backgroundColor: esTuyo ? 'rgba(26,107,58,0.2)' : theme.surface1 },
-              esTuyo && { borderWidth: 1, borderColor: theme.accentDark },
-            ]}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => verPerfilAlumno(item, esTuyo)}
+              style={[
+                styles.rankRow,
+                { backgroundColor: esTuyo ? 'rgba(26,107,58,0.2)' : theme.surface1 },
+                esTuyo && { borderWidth: 1, borderColor: theme.accentDark },
+              ]}
+            >
               {/* Posición */}
               <View style={styles.rankPos}>
                 {index < 3
@@ -111,7 +127,7 @@ export default function RankingScreen() {
                   }]} />
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         }}
       />

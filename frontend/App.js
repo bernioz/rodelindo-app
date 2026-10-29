@@ -21,6 +21,9 @@ import PerfilAlumnoScreen from './src/features/profesor/screens/PerfilAlumnoScre
 import AlumnoHomeScreen from './src/features/alumno/screens/AlumnoHomeScreen';
 import RankingScreen from './src/features/alumno/screens/RankingScreen';
 import AlumnoPerfilScreen from './src/features/alumno/screens/AlumnoPerfilScreen';
+import NewsScreen from './src/features/alumno/screens/NewsScreen';
+import GalleryScreen from './src/features/alumno/screens/GalleryScreen';
+import PerfilCompaneroScreen from './src/features/alumno/screens/PerfilCompaneroScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -30,6 +33,15 @@ function AlumnosStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ListaAlumnos" component={AlumnosScreen} />
       <Stack.Screen name="PerfilAlumno" component={PerfilAlumnoScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function RankingStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="RankingList" component={RankingScreen} />
+      <Stack.Screen name="PerfilCompanero" component={PerfilCompaneroScreen} />
     </Stack.Navigator>
   );
 }
@@ -68,10 +80,14 @@ function AlumnoTabs() {
     }}>
       <Tab.Screen name="InicioTab" component={AlumnoHomeScreen}
         options={{ tabBarLabel: 'Inicio', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
-      <Tab.Screen name="RankingTab" component={RankingScreen}
+      <Tab.Screen name="RankingTab" component={RankingStack}
         options={{ tabBarLabel: 'Ranking', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏆</Text> }} />
       <Tab.Screen name="PerfilTab" component={AlumnoPerfilScreen}
         options={{ tabBarLabel: 'Perfil', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
+      <Tab.Screen name="NoticiasTab" component={NewsScreen}
+        options={{ tabBarLabel: 'Noticias', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📰</Text> }} />
+      <Tab.Screen name="GaleriaTab" component={GalleryScreen}
+        options={{ tabBarLabel: 'Galería', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🖼️</Text> }} />
     </Tab.Navigator>
   );
 }
