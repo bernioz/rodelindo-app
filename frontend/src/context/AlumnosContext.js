@@ -17,10 +17,11 @@ const ALUMNOS_INICIALES = [
   { id: 14, nombre_completo: 'Rodrigo Vargas',   categoria: 'Sub-16', asistencia: 84, matricula: true,  pagos: { 3:true,4:true,5:true,6:true,7:false } },
 ];
 
-// Ciclo de estados: undefined → true → false → undefined
+// Ciclo: sin definir → pagado → pendiente → no aplica → sin definir
 const siguienteEstado = (actual) => {
   if (actual === undefined) return true;
   if (actual === true) return false;
+  if (actual === false) return 'na';
   return undefined;
 };
 
@@ -55,11 +56,14 @@ export function AlumnosProvider({ children }) {
       a.id === alumnoId ? { ...a, matricula: !a.matricula } : a
     ));
   };
+  const actualizarFoto = (alumnoId, uri) => {
+    setAlumnos((prev) => prev.map((a) => a.id === alumnoId ? { ...a, foto: uri } : a));
+  }; 
 
   const getByCategoria = (cat) => alumnos.filter((a) => a.categoria === cat);
 
   return (
-    <AlumnosContext.Provider value={{ alumnos, agregarAlumno, getByCategoria, actualizarPago, actualizarMatricula }}>
+    <AlumnosContext.Provider value={{ alumnos, agregarAlumno, getByCategoria, actualizarPago, actualizarMatricula, actualizarFoto }}>
       {children}
     </AlumnosContext.Provider>
   );

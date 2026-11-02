@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
-import { getIniciales } from '../../../data/mockData';
 import ScreenHeader from '../../../components/ScreenHeader';
+import Avatar from '../../../components/Avatar';
 
 const MEDALLAS = ['🥇', '🥈', '🥉'];
 
@@ -12,11 +13,12 @@ export default function RankingScreen() {
   const { user } = useAuth();
   const { theme, fontSize } = useTheme();
   const { getByCategoria } = useAlumnos();
+  const navigation = useNavigation();
 
-  const alumno = getByCategoria(user.categoria ?? 'Sub-12')
-    .find((a) => a.id === user.alumnoId);
+  const categoria = user.categoria ?? 'Sub-12';
+  const alumno = getByCategoria(categoria).find((a) => a.id === user.alumnoId);
 
-  const ranking = [...getByCategoria(user.categoria ?? 'Sub-12')]
+  const ranking = [...getByCategoria(categoria)]
     .sort((a, b) => b.asistencia - a.asistencia);
 
   const posicion = ranking.findIndex((a) => a.id === user.alumnoId) + 1;
@@ -31,10 +33,7 @@ export default function RankingScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
-      <ScreenHeader
-        title={`Ranking ${user.categoria ?? 'Sub-12'}`}
-        subtitle="Asistencia · Temporada 2025"
-      />
+      <ScreenHeader title={`Ranking ${categoria}`} subtitle="Asistencia · Temporada 2025" />
 
       {/* Tu posición */}
       {alumno && (
@@ -61,6 +60,10 @@ export default function RankingScreen() {
         </View>
       )}
 
+      <Text style={[styles.hint, { color: theme.textMuted, fontSize: fs(11) }]}>
+        Toca a un compañero para ver su perfil
+      </Text>
+
       <FlatList
         data={ranking}
         keyExtractor={(item) => item.id.toString()}
@@ -68,11 +71,15 @@ export default function RankingScreen() {
         renderItem={({ item, index }) => {
           const esTuyo = item.id === user.alumnoId;
           return (
-            <View style={[
-              styles.rankRow,
-              { backgroundColor: esTuyo ? 'rgba(26,107,58,0.2)' : theme.surface1 },
-              esTuyo && { borderWidth: 1, borderColor: theme.accentDark },
-            ]}>
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={() => navigation.navigate('PerfilCompanero', { alumnoId: item.id })}
+              style={[
+                styles.rankRow,
+                { backgroundColor: esTuyo ? 'rgba(26,107,58,0.2)' : theme.surface1 },
+                esTuyo && { borderWidth: 1, borderColor: theme.accentDark },
+              ]}
+            >
               {/* Posición */}
               <View style={styles.rankPos}>
                 {index < 3
@@ -83,13 +90,7 @@ export default function RankingScreen() {
                 }
               </View>
 
-              {/* Avatar */}
-              <View style={[styles.avatar,
-                { backgroundColor: esTuyo ? theme.accentDark : theme.surface2 }]}>
-                <Text style={[styles.avatarText, { fontSize: fs(13) }]}>
-                  {getIniciales(item.nombre_completo)}
-                </Text>
-              </View>
+              <Avatar alumno={item} size={36} highlight={esTuyo} />
 
               {/* Nombre */}
               <View style={styles.rankInfo}>
@@ -111,7 +112,7 @@ export default function RankingScreen() {
                   }]} />
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         }}
       />
@@ -121,7 +122,7 @@ export default function RankingScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  miPosicion: { margin: 20, borderRadius: 14, padding: 16 },
+  miPosicion: { margin: 20, marginBottom: 8, borderRadius: 14, padding: 16 },
   miPosLabel: { color: 'rgba(255,255,255,0.7)', marginBottom: 8 },
   miPosRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   miPosNum: { color: '#fff', fontWeight: 'bold' },
@@ -130,6 +131,7 @@ const styles = StyleSheet.create({
   miPosAsist: { color: '#3DDC84', fontWeight: 'bold' },
   miPosBarra: { alignItems: 'flex-end' },
   miPosBarraLabel: { color: 'rgba(255,255,255,0.6)' },
+  hint: { textAlign: 'center', marginBottom: 8 },
   lista: { paddingHorizontal: 20, paddingBottom: 40 },
   rankRow: {
     flexDirection: 'row', alignItems: 'center',
@@ -138,8 +140,6 @@ const styles = StyleSheet.create({
   rankPos: { width: 32, alignItems: 'center' },
   rankMedalla: {},
   rankNum: { fontWeight: 'bold' },
-  avatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#fff', fontWeight: 'bold' },
   rankInfo: { flex: 1 },
   rankNombre: { fontWeight: '500' },
   rankDerecha: { alignItems: 'flex-end', gap: 4, minWidth: 60 },

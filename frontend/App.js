@@ -21,6 +21,16 @@ import PerfilAlumnoScreen from './src/features/profesor/screens/PerfilAlumnoScre
 import AlumnoHomeScreen from './src/features/alumno/screens/AlumnoHomeScreen';
 import RankingScreen from './src/features/alumno/screens/RankingScreen';
 import AlumnoPerfilScreen from './src/features/alumno/screens/AlumnoPerfilScreen';
+import PerfilCompaneroScreen from './src/features/alumno/screens/PerfilCompaneroScreen';
+
+function RankingStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Ranking" component={RankingScreen} />
+      <Stack.Screen name="PerfilCompanero" component={PerfilCompaneroScreen} />
+    </Stack.Navigator>
+  );
+}
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -68,7 +78,7 @@ function AlumnoTabs() {
     }}>
       <Tab.Screen name="InicioTab" component={AlumnoHomeScreen}
         options={{ tabBarLabel: 'Inicio', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
-      <Tab.Screen name="RankingTab" component={RankingScreen}
+      <Tab.Screen name="RankingTab" component={RankingStack}
         options={{ tabBarLabel: 'Ranking', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏆</Text> }} />
       <Tab.Screen name="PerfilTab" component={AlumnoPerfilScreen}
         options={{ tabBarLabel: 'Perfil', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />

@@ -3,11 +3,13 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Modal, TextInput, KeyboardAvoidingView, Platform, Switch
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
-import { meses, getIniciales } from '../../../data/mockData';
+import { meses } from '../../../data/mockData';
 import ScreenHeader from '../../../components/ScreenHeader';
+import Avatar from '../../../components/Avatar';
 
 const MES_ACTUAL = new Date().getMonth() + 1;
 const FONT_SIZES = [
@@ -19,7 +21,7 @@ const FONT_SIZES = [
 export default function AlumnoPerfilScreen() {
   const { user, logout } = useAuth();
   const { theme, mode, toggleMode, fontSize, setFontSize } = useTheme();
-  const { alumnos } = useAlumnos();
+  const { alumnos, actualizarFoto } = useAlumnos();   // ← aquí adentro, una sola vez
 
   const alumno = alumnos.find((a) => a.id === user.alumnoId);
 
@@ -34,7 +36,7 @@ export default function AlumnoPerfilScreen() {
   if (!alumno) return null;
 
   const fs = (s) => s * fontSize;
-  const mesesPagados = Object.values(alumno.pagos).filter(Boolean).length;
+  const mesesPagados = Object.values(alumno.pagos).filter((v) => v === true).length;
 
   const colorPct = (pct) => {
     if (pct >= 80) return theme.accent;
@@ -42,11 +44,21 @@ export default function AlumnoPerfilScreen() {
     return '#FF5A5F';
   };
 
+  const elegirFoto = async () => {
+    const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permiso.granted) return;
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.7,
+    });
+    if (!res.canceled) actualizarFoto(alumno.id, res.assets[0].uri);
+  };
+
   const mesEstilos = (num) => {
     const pagado = alumno.pagos[num];
     const futuro = num > MES_ACTUAL;
     if (pagado === true)  return { bg: 'rgba(61,220,132,0.15)', color: '#3DDC84', simbolo: '✓' };
     if (pagado === false) return { bg: 'rgba(255,90,95,0.15)',  color: '#FF5A5F', simbolo: '✗' };
+    if (pagado === 'na')  return { bg: theme.surface2, color: theme.textMuted, simbolo: 'N/A' };
     if (futuro)           return { bg: theme.surface2, color: theme.textMuted, simbolo: '–' };
     return { bg: 'rgba(255,90,95,0.15)', color: '#FF5A5F', simbolo: '✗' };
   };
@@ -64,11 +76,12 @@ export default function AlumnoPerfilScreen() {
 
           {/* Avatar */}
           <View style={styles.profileHeader}>
-            <View style={[styles.avatar, { backgroundColor: theme.accentDark }]}>
-              <Text style={[styles.avatarText, { fontSize: fs(26) }]}>
-                {getIniciales(alumno.nombre_completo)}
+            <TouchableOpacity onPress={elegirFoto} activeOpacity={0.8}>
+              <Avatar alumno={alumno} size={80} />
+              <Text style={{ color: theme.accent, fontSize: 12 * fontSize, textAlign: 'center', marginTop: 6 }}>
+                Cambiar foto
               </Text>
-            </View>
+            </TouchableOpacity>
             <Text style={[styles.nombre, { color: theme.textPrim, fontSize: fs(22) }]}>
               {alumno.nombre_completo}
             </Text>
@@ -133,7 +146,7 @@ export default function AlumnoPerfilScreen() {
               {[
                 { color: 'rgba(61,220,132,0.3)', label: 'Pagado' },
                 { color: 'rgba(255,90,95,0.3)',  label: 'Pendiente' },
-                { color: theme.surface2,          label: 'Próximo' },
+                { color: theme.surface2,          label: 'Próximo / N/A' },
               ].map((l) => (
                 <View key={l.label} style={styles.leyendaItem}>
                   <View style={[styles.leyendaDot, { backgroundColor: l.color }]} />
@@ -284,7 +297,7 @@ const styles = StyleSheet.create({
   profileHeader: { alignItems: 'center', marginBottom: 24 },
   avatar: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   avatarText: { color: '#fff', fontWeight: 'bold' },
-  nombre: { fontWeight: 'bold', textAlign: 'center' },
+  nombre: { fontWeight: 'bold', textAlign: 'center', marginTop: 12 },
   catBadge: { marginTop: 8, borderRadius: 20, paddingVertical: 4, paddingHorizontal: 14 },
   catBadgeText: { fontWeight: 'bold' },
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 24 },

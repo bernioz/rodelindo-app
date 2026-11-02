@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
-import { meses, getIniciales } from '../../../data/mockData';
+import { meses } from '../../../data/mockData';
 import ScreenHeader from '../../../components/ScreenHeader';
+import Avatar from '../../../components/Avatar';
 
 export default function PerfilAlumnoScreen({ route, navigation }) {
   const { theme, fontSize } = useTheme();
@@ -24,10 +25,10 @@ export default function PerfilAlumnoScreen({ route, navigation }) {
 
   const mesesPagados = Object.values(alumno.pagos).filter((v) => v === true).length;
 
-  // Estilos dinámicos por estado de mes
   const mesEstilos = (pagado) => {
     if (pagado === true)  return { bg: 'rgba(61,220,132,0.15)', color: '#3DDC84', simbolo: '✓' };
     if (pagado === false) return { bg: 'rgba(255,90,95,0.15)',  color: '#FF5A5F', simbolo: '✗' };
+    if (pagado === 'na')  return { bg: theme.surface2, color: theme.textMuted, simbolo: 'N/A' };
     return { bg: theme.surface2, color: theme.textMuted, simbolo: '–' };
   };
 
@@ -45,9 +46,7 @@ export default function PerfilAlumnoScreen({ route, navigation }) {
 
         {/* Avatar */}
         <View style={styles.profileHeader}>
-          <View style={[styles.avatar, { backgroundColor: theme.accentDark }]}>
-            <Text style={styles.avatarText}>{getIniciales(alumno.nombre_completo)}</Text>
-          </View>
+          <Avatar alumno={alumno} size={72} />
           <Text style={[styles.nombre, { color: theme.textPrim, fontSize: 22 * fontSize }]}>
             {alumno.nombre_completo}
           </Text>
@@ -129,7 +128,7 @@ export default function PerfilAlumnoScreen({ route, navigation }) {
           {[
             { color: 'rgba(61,220,132,0.3)', label: 'Pagado (✓)' },
             { color: 'rgba(255,90,95,0.3)',  label: 'Pendiente (✗)' },
-            { color: theme.surface2,          label: 'Sin definir (–)' },
+            { color: theme.surface2,          label: 'Sin definir (–) / No aplica (N/A)' },
           ].map((l) => (
             <View key={l.label} style={styles.leyendaItem}>
               <View style={[styles.leyendaDot, { backgroundColor: l.color }]} />
@@ -152,7 +151,7 @@ const styles = StyleSheet.create({
   profileHeader: { alignItems: 'center', marginBottom: 24 },
   avatar: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   avatarText: { color: '#fff', fontSize: 26, fontWeight: 'bold' },
-  nombre: { fontWeight: 'bold', textAlign: 'center' },
+  nombre: { fontWeight: 'bold', textAlign: 'center', marginTop: 12 },
   catBadge: { marginTop: 8, borderRadius: 20, paddingVertical: 4, paddingHorizontal: 14 },
   catBadgeText: { fontSize: 12, fontWeight: 'bold' },
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 28 },

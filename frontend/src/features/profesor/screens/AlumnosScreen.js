@@ -5,23 +5,22 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
-import { meses, getIniciales } from '../../../data/mockData';
+import { meses } from '../../../data/mockData';
 import ScreenHeader from '../../../components/ScreenHeader';
+import Avatar from '../../../components/Avatar';
 
 const CATS = ['Sub-8', 'Sub-10', 'Sub-12', 'Sub-14', 'Sub-16'];
 
-// Mes actual (1-12)
 const MES_ACTUAL = new Date().getMonth() + 1;
 
-// Meses del año que ya pasaron o son el actual, de los que están en el objeto meses
 const mesesTranscurridos = Object.keys(meses)
   .map(Number)
   .filter((m) => m <= MES_ACTUAL);
 
-// Matrícula automática: true si todos los meses transcurridos están pagados
+// Matrícula automática: todos los meses transcurridos pagados o "no aplica"
 const calcularMatricula = (pagos) => {
   if (mesesTranscurridos.length === 0) return false;
-  return mesesTranscurridos.every((m) => pagos[m] === true);
+  return mesesTranscurridos.every((m) => pagos[m] === true || pagos[m] === 'na');
 };
 
 export default function AlumnosScreen({ navigation }) {
@@ -37,6 +36,16 @@ export default function AlumnosScreen({ navigation }) {
     if (pct >= 80) return theme.accent;
     if (pct >= 60) return '#F5A623';
     return '#FF5A5F';
+  };
+
+  // Estilo de cada chip de mes según su estado
+  const chipMes = (pagado, numInt) => {
+    const esFuturo = numInt > MES_ACTUAL;
+    if (pagado === true)  return { bg: 'rgba(61,220,132,0.15)', color: '#3DDC84' };
+    if (pagado === false) return { bg: 'rgba(255,90,95,0.15)',  color: '#FF5A5F' };
+    if (pagado === 'na' || esFuturo) return { bg: theme.surface2, color: theme.textMuted };
+    // Mes ya transcurrido sin registro → cuenta como pendiente
+    return { bg: 'rgba(255,90,95,0.15)', color: '#FF5A5F' };
   };
 
   const guardarAlumno = () => {
@@ -108,9 +117,7 @@ export default function AlumnosScreen({ navigation }) {
               activeOpacity={0.75}
             >
               <View style={styles.alumnoTop}>
-                <View style={[styles.avatar, { backgroundColor: theme.accentDark }]}>
-                  <Text style={styles.avatarText}>{getIniciales(item.nombre_completo)}</Text>
-                </View>
+                <Avatar alumno={item} size={42} />
                 <View style={styles.alumnoInfo}>
                   <Text style={[styles.alumnoNombre, { color: theme.textPrim, fontSize: 15 * fontSize }]}>
                     {item.nombre_completo}
@@ -129,7 +136,6 @@ export default function AlumnosScreen({ navigation }) {
 
               {/* Chips de pagos */}
               <View style={styles.pagosRow}>
-                {/* Matrícula automática */}
                 <View style={[styles.matriculaChip,
                   matriculaAuto ? styles.chipPagado : styles.chipPendiente]}>
                   <Text style={[styles.chipText,
@@ -138,31 +144,12 @@ export default function AlumnosScreen({ navigation }) {
                   </Text>
                 </View>
 
-                {/* Meses */}
                 {Object.entries(meses).map(([num, nombre]) => {
                   const numInt = parseInt(num);
-                  const pagado = item.pagos[numInt];
-                  const esFuturo = numInt > MES_ACTUAL;
+                  const { bg, color } = chipMes(item.pagos[numInt], numInt);
                   return (
-                    <View
-                      key={num}
-                      style={[
-                        styles.mesChip,
-                        pagado === true  ? styles.chipPagado :
-                        pagado === false ? styles.chipPendiente :
-                        esFuturo ? { backgroundColor: theme.surface2 } :
-                        styles.chipPendiente,
-                      ]}
-                    >
-                      <Text style={[
-                        styles.chipText,
-                        pagado === true  ? styles.chipTextPagado :
-                        pagado === false ? styles.chipTextPendiente :
-                        esFuturo ? { color: theme.textMuted } :
-                        styles.chipTextPendiente,
-                      ]}>
-                        {nombre}
-                      </Text>
+                    <View key={num} style={[styles.mesChip, { backgroundColor: bg }]}>
+                      <Text style={[styles.chipText, { color }]}>{nombre}</Text>
                     </View>
                   );
                 })}
@@ -234,31 +221,17 @@ export default function AlumnosScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  // Wrapper con altura fija evita que FlatList comprima los tabs
-  tabsWrapper: {
-    height: 52,
-    flexShrink: 0,
-  },
-  tabsContent: {
-    paddingHorizontal: 20,
-    gap: 8,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
+  tabsWrapper: { height: 52, flexShrink: 0 },
+  tabsContent: { paddingHorizontal: 20, gap: 8, alignItems: 'center', paddingVertical: 8 },
   tab: { paddingVertical: 6, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1 },
   tabText: {},
-  addBtn: {
-    marginHorizontal: 20, marginBottom: 12,
-    borderRadius: 10, padding: 12, alignItems: 'center',
-  },
+  addBtn: { marginHorizontal: 20, marginBottom: 12, borderRadius: 10, padding: 12, alignItems: 'center' },
   addBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   lista: { paddingHorizontal: 20, paddingBottom: 40 },
   emptyBox: { padding: 32, alignItems: 'center' },
   emptyText: { textAlign: 'center', lineHeight: 22 },
   alumnoCard: { borderRadius: 12, padding: 12, marginBottom: 12, gap: 10 },
   alumnoTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   alumnoInfo: { flex: 1 },
   alumnoNombre: { fontWeight: '500' },
   alumnoCategoria: { marginTop: 2 },
