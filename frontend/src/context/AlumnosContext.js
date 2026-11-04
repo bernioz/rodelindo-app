@@ -2,23 +2,23 @@ import React, { createContext, useState, useContext, useMemo } from 'react';
 import { toKey } from '../utils/fechas';
 import { fechasSemilla, generarSesiones, calcAsistencia, historialAlumno } from '../utils/asistencia';
 
-// "semilla" = % aproximado con el que se generan las clases de prueba.
+// "semilla" = % de asistencia aproximado con el que se generan las clases de prueba.
 // El % real que se muestra en la app se calcula siempre a partir de las sesiones guardadas.
 const SEMILLA = [
-  { id: 1,  nombre_completo: 'Mateo González',   categoria: 'Sub-12', semilla: 87, matricula: true,  pagos: { 3:true,4:true,5:true,6:true,7:false } },
-  { id: 2,  nombre_completo: 'Pablo Herrera',    categoria: 'Sub-12', semilla: 92, matricula: true,  pagos: { 3:true,4:true,5:true,6:true,7:true  } },
-  { id: 3,  nombre_completo: 'Cristóbal Rojas',  categoria: 'Sub-12', semilla: 61, matricula: false, pagos: { 3:true,4:false,5:false,6:false,7:false } },
-  { id: 4,  nombre_completo: 'Lucas Vega',       categoria: 'Sub-12', semilla: 79, matricula: true,  pagos: { 3:true,4:true,5:true,6:true,7:true  } },
-  { id: 5,  nombre_completo: 'Diego Muñoz',      categoria: 'Sub-12', semilla: 55, matricula: false, pagos: { 3:true,4:true,5:false,6:false,7:false } },
-  { id: 6,  nombre_completo: 'Ignacio Pérez',    categoria: 'Sub-14', semilla: 90, matricula: true,  pagos: { 3:true,4:true,5:true,6:true,7:false } },
-  { id: 7,  nombre_completo: 'Bastián Castro',   categoria: 'Sub-14', semilla: 73, matricula: true,  pagos: { 3:true,4:true,5:true,6:false,7:false } },
-  { id: 8,  nombre_completo: 'Tomás Flores',     categoria: 'Sub-14', semilla: 68, matricula: false, pagos: { 3:true,4:false,5:false,6:false,7:false } },
-  { id: 9,  nombre_completo: 'Felipe Morales',   categoria: 'Sub-10', semilla: 95, matricula: true,  pagos: { 3:true,4:true,5:true,6:true,7:true  } },
-  { id: 10, nombre_completo: 'Nicolás Silva',    categoria: 'Sub-10', semilla: 82, matricula: true,  pagos: { 3:true,4:true,5:true,6:true,7:false } },
-  { id: 11, nombre_completo: 'Agustín Torres',   categoria: 'Sub-8',  semilla: 88, matricula: true,  pagos: { 3:true,4:true,5:true,6:true,7:false } },
-  { id: 12, nombre_completo: 'Emilio Díaz',      categoria: 'Sub-8',  semilla: 71, matricula: false, pagos: { 3:true,4:true,5:false,6:false,7:false } },
-  { id: 13, nombre_completo: 'Sebastián Ramos',  categoria: 'Sub-16', semilla: 77, matricula: true,  pagos: { 3:true,4:true,5:true,6:false,7:false } },
-  { id: 14, nombre_completo: 'Rodrigo Vargas',   categoria: 'Sub-16', semilla: 84, matricula: true,  pagos: { 3:true,4:true,5:true,6:true,7:false } },
+  { id: 1, nombre_completo: 'Mateo González', categoria: 'Sub-12', semilla: 87, numero_camiseta: 10, posicion: 'Delantero', goles: 12, partidos: 10, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:false } },
+  { id: 2, nombre_completo: 'Pablo Herrera', categoria: 'Sub-12', semilla: 92, numero_camiseta: 7, posicion: 'Mediocampista', goles: 8, partidos: 12, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:true } },
+  { id: 3, nombre_completo: 'Cristóbal Rojas', categoria: 'Sub-12', semilla: 61, numero_camiseta: 4, posicion: 'Defensa', goles: 1, partidos: 7, matricula: false, pagos: { 3:true,4:false,5:false,6:false,7:false } },
+  { id: 4, nombre_completo: 'Lucas Vega', categoria: 'Sub-12', semilla: 79, numero_camiseta: 1, posicion: 'Portero', goles: 0, partidos: 9, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:true } },
+  { id: 5, nombre_completo: 'Diego Muñoz', categoria: 'Sub-12', semilla: 55, numero_camiseta: 9, posicion: 'Delantero', goles: 3, partidos: 6, matricula: false, pagos: { 3:true,4:true,5:false,6:false,7:false } },
+  { id: 6, nombre_completo: 'Ignacio Pérez', categoria: 'Sub-14', semilla: 90, numero_camiseta: 8, posicion: 'Mediocampista', goles: 6, partidos: 11, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:false } },
+  { id: 7, nombre_completo: 'Bastián Castro', categoria: 'Sub-14', semilla: 73, numero_camiseta: 5, posicion: 'Defensa', goles: 2, partidos: 8, matricula: true, pagos: { 3:true,4:true,5:true,6:false,7:false } },
+  { id: 8, nombre_completo: 'Tomás Flores', categoria: 'Sub-14', semilla: 68, numero_camiseta: 11, posicion: 'Delantero', goles: 5, partidos: 7, matricula: false, pagos: { 3:true,4:false,5:false,6:false,7:false } },
+  { id: 9, nombre_completo: 'Felipe Morales', categoria: 'Sub-10', semilla: 95, numero_camiseta: 10, posicion: 'Delantero', goles: 15, partidos: 12, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:true } },
+  { id: 10, nombre_completo: 'Nicolás Silva', categoria: 'Sub-10', semilla: 82, numero_camiseta: 6, posicion: 'Mediocampista', goles: 4, partidos: 10, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:false } },
+  { id: 11, nombre_completo: 'Agustín Torres', categoria: 'Sub-8', semilla: 88, numero_camiseta: 9, posicion: 'Delantero', goles: 9, partidos: 10, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:false } },
+  { id: 12, nombre_completo: 'Emilio Díaz', categoria: 'Sub-8', semilla: 71, numero_camiseta: 2, posicion: 'Defensa', goles: 1, partidos: 8, matricula: false, pagos: { 3:true,4:true,5:false,6:false,7:false } },
+  { id: 13, nombre_completo: 'Sebastián Ramos', categoria: 'Sub-16', semilla: 77, numero_camiseta: 7, posicion: 'Mediocampista', goles: 7, partidos: 9, matricula: true, pagos: { 3:true,4:true,5:true,6:false,7:false } },
+  { id: 14, nombre_completo: 'Rodrigo Vargas', categoria: 'Sub-16', semilla: 84, numero_camiseta: 3, posicion: 'Defensa', goles: 2, partidos: 11, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:false } },
 ];
 
 const FECHAS_INICIALES = fechasSemilla();
@@ -49,7 +49,16 @@ export function AlumnosProvider({ children }) {
   const agregarAlumno = (alumno) => {
     setBase((prev) => [
       ...prev,
-      { ...alumno, id: Date.now(), pagos: {}, fechaIngreso: toKey(new Date()) },
+      {
+        ...alumno,
+        id: Date.now(),
+        numero_camiseta: alumno.numero_camiseta || 99,
+        posicion: alumno.posicion || 'Por definir',
+        goles: 0,
+        partidos: 0,
+        pagos: {},
+        fechaIngreso: toKey(new Date()),
+      },
     ]);
   };
 
@@ -72,6 +81,7 @@ export function AlumnosProvider({ children }) {
     ));
   };
 
+  // uri = null quita la foto
   const actualizarFoto = (alumnoId, uri) => {
     setBase((prev) => prev.map((a) => (a.id === alumnoId ? { ...a, foto: uri } : a)));
   };

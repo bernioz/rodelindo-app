@@ -26,6 +26,8 @@ import AlumnoHomeScreen from './src/features/alumno/screens/AlumnoHomeScreen';
 import RankingScreen from './src/features/alumno/screens/RankingScreen';
 import AlumnoPerfilScreen from './src/features/alumno/screens/AlumnoPerfilScreen';
 import PerfilCompaneroScreen from './src/features/alumno/screens/PerfilCompaneroScreen';
+import NewsScreen from './src/features/alumno/screens/NewsScreen';
+import GalleryScreen from './src/features/alumno/screens/GalleryScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -42,7 +44,7 @@ function AlumnosStack() {
 function RankingStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Ranking" component={RankingScreen} />
+      <Stack.Screen name="RankingList" component={RankingScreen} />
       <Stack.Screen name="PerfilCompanero" component={PerfilCompaneroScreen} />
     </Stack.Navigator>
   );
@@ -94,6 +96,10 @@ function AlumnoTabs() {
         options={{ tabBarLabel: 'Ranking', tabBarIcon: icono('🏆') }} />
       <Tab.Screen name="PerfilTab" component={AlumnoPerfilScreen}
         options={{ tabBarLabel: 'Perfil', tabBarIcon: icono('👤') }} />
+      <Tab.Screen name="NoticiasTab" component={NewsScreen}
+        options={{ tabBarLabel: 'Noticias', tabBarIcon: icono('📰') }} />
+      <Tab.Screen name="GaleriaTab" component={GalleryScreen}
+        options={{ tabBarLabel: 'Galería', tabBarIcon: icono('🖼') }} />
     </Tab.Navigator>
   );
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
@@ -9,18 +8,15 @@ import Avatar from '../../../components/Avatar';
 
 const MEDALLAS = ['🥇', '🥈', '🥉'];
 
-export default function RankingScreen() {
+export default function RankingScreen({ navigation }) {
   const { user } = useAuth();
   const { theme, fontSize } = useTheme();
   const { getByCategoria } = useAlumnos();
-  const navigation = useNavigation();
 
   const categoria = user.categoria ?? 'Sub-12';
   const alumno = getByCategoria(categoria).find((a) => a.id === user.alumnoId);
 
-  const ranking = [...getByCategoria(categoria)]
-    .sort((a, b) => b.asistencia - a.asistencia);
-
+  const ranking = [...getByCategoria(categoria)].sort((a, b) => b.asistencia - a.asistencia);
   const posicion = ranking.findIndex((a) => a.id === user.alumnoId) + 1;
 
   const colorPct = (pct) => {
@@ -31,14 +27,24 @@ export default function RankingScreen() {
 
   const fs = (s) => s * fontSize;
 
+  // Tu fila lleva a tu perfil; las demás, a la ficha pública del compañero
+  const verPerfilAlumno = (item, esTuyo) => {
+    if (esTuyo) navigation.navigate('PerfilTab');
+    else navigation.navigate('PerfilCompanero', { alumnoId: item.id });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
-      <ScreenHeader title={`Ranking ${categoria}`} subtitle="Asistencia · Temporada 2025" />
+      <ScreenHeader title={`Ranking ${categoria}`} subtitle="Asistencia · Temporada 2026" />
 
       {/* Tu posición */}
       {alumno && (
-        <View style={[styles.miPosicion, { backgroundColor: theme.accentDark }]}>
-          <Text style={[styles.miPosLabel, { fontSize: fs(12) }]}>Tu posición</Text>
+        <TouchableOpacity
+          style={[styles.miPosicion, { backgroundColor: theme.accentDark }]}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('PerfilTab')}
+        >
+          <Text style={[styles.miPosLabel, { fontSize: fs(12) }]}>Tu posición (Toca para ver)</Text>
           <View style={styles.miPosRow}>
             <Text style={[styles.miPosNum, { fontSize: fs(36) }]}>
               {posicion <= 3 ? MEDALLAS[posicion - 1] : `#${posicion}`}
@@ -47,9 +53,7 @@ export default function RankingScreen() {
               <Text style={[styles.miPosNombre, { fontSize: fs(16) }]}>
                 {alumno.nombre_completo.split(' ')[0]}
               </Text>
-              <Text style={[styles.miPosAsist, { fontSize: fs(22) }]}>
-                {alumno.asistencia}%
-              </Text>
+              <Text style={[styles.miPosAsist, { fontSize: fs(22) }]}>{alumno.asistencia}%</Text>
             </View>
             <View style={styles.miPosBarra}>
               <Text style={[styles.miPosBarraLabel, { fontSize: fs(10) }]}>
@@ -57,7 +61,7 @@ export default function RankingScreen() {
               </Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       )}
 
       <Text style={[styles.hint, { color: theme.textMuted, fontSize: fs(11) }]}>
@@ -72,8 +76,8 @@ export default function RankingScreen() {
           const esTuyo = item.id === user.alumnoId;
           return (
             <TouchableOpacity
-              activeOpacity={0.75}
-              onPress={() => navigation.navigate('PerfilCompanero', { alumnoId: item.id })}
+              activeOpacity={0.7}
+              onPress={() => verPerfilAlumno(item, esTuyo)}
               style={[
                 styles.rankRow,
                 { backgroundColor: esTuyo ? 'rgba(26,107,58,0.2)' : theme.surface1 },
@@ -133,10 +137,7 @@ const styles = StyleSheet.create({
   miPosBarraLabel: { color: 'rgba(255,255,255,0.6)' },
   hint: { textAlign: 'center', marginBottom: 8 },
   lista: { paddingHorizontal: 20, paddingBottom: 40 },
-  rankRow: {
-    flexDirection: 'row', alignItems: 'center',
-    borderRadius: 12, padding: 12, marginBottom: 8, gap: 10,
-  },
+  rankRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 12, marginBottom: 8, gap: 10 },
   rankPos: { width: 32, alignItems: 'center' },
   rankMedalla: {},
   rankNum: { fontWeight: 'bold' },
