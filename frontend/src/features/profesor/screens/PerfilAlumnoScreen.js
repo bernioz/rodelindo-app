@@ -5,6 +5,7 @@ import { useAlumnos } from '../../../context/AlumnosContext';
 import { meses } from '../../../data/mockData';
 import ScreenHeader from '../../../components/ScreenHeader';
 import Avatar from '../../../components/Avatar';
+import CalendarioAsistencia from '../../../components/CalendarioAsistencia';
 
 export default function PerfilAlumnoScreen({ route, navigation }) {
   const { theme, fontSize } = useTheme();
@@ -71,6 +72,12 @@ export default function PerfilAlumnoScreen({ route, navigation }) {
             </View>
           ))}
         </View>
+
+        {/* Calendario de asistencia */}
+        <Text style={[styles.sectionTitle, { color: theme.textPrim, fontSize: 16 * fontSize }]}>
+          Asistencia por día
+        </Text>
+        <CalendarioAsistencia alumnoId={alumno.id} />
 
         {/* Pagos */}
         <Text style={[styles.sectionTitle, { color: theme.textPrim, fontSize: 16 * fontSize }]}>

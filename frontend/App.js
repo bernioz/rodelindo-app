@@ -8,9 +8,13 @@ import { Text } from 'react-native';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { AlumnosProvider } from './src/context/AlumnosContext';
+import { EventosProvider } from './src/context/EventosContext';
+
+// Común
+import LoginScreen from './src/features/auth/screens/LoginScreen';
+import CalendarioScreen from './src/features/calendario/screens/CalendarioScreen';
 
 // Profesor
-import LoginScreen from './src/features/auth/screens/LoginScreen';
 import ProfesorHomeScreen from './src/features/profesor/screens/ProfesorHomeScreen';
 import AlumnosScreen from './src/features/profesor/screens/AlumnosScreen';
 import AsistenciaScreen from './src/features/profesor/screens/AsistenciaScreen';
@@ -22,15 +26,6 @@ import AlumnoHomeScreen from './src/features/alumno/screens/AlumnoHomeScreen';
 import RankingScreen from './src/features/alumno/screens/RankingScreen';
 import AlumnoPerfilScreen from './src/features/alumno/screens/AlumnoPerfilScreen';
 import PerfilCompaneroScreen from './src/features/alumno/screens/PerfilCompaneroScreen';
-
-function RankingStack() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Ranking" component={RankingScreen} />
-      <Stack.Screen name="PerfilCompanero" component={PerfilCompaneroScreen} />
-    </Stack.Navigator>
-  );
-}
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -44,65 +39,103 @@ function AlumnosStack() {
   );
 }
 
-function ProfesorTabs() {
-  const { theme } = useTheme();
+function RankingStack() {
   return (
-    <Tab.Navigator screenOptions={{
-      headerShown: false,
-      tabBarStyle: { backgroundColor: theme.surface1, borderTopColor: theme.border, borderTopWidth: 1, paddingBottom: 6, paddingTop: 6, height: 62 },
-      tabBarActiveTintColor: theme.accent,
-      tabBarInactiveTintColor: theme.textSec,
-      tabBarLabelStyle: { fontSize: 11, marginTop: 2 },
-    }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Ranking" component={RankingScreen} />
+      <Stack.Screen name="PerfilCompanero" component={PerfilCompaneroScreen} />
+    </Stack.Navigator>
+  );
+}
+
+const icono = (emoji) => ({ color }) => <Text style={{ fontSize: 20, color }}>{emoji}</Text>;
+
+function useTabOptions() {
+  const { theme } = useTheme();
+  return {
+    headerShown: false,
+    tabBarStyle: {
+      backgroundColor: theme.surface1,
+      borderTopColor: theme.border,
+      borderTopWidth: 1,
+      paddingBottom: 6,
+      paddingTop: 6,
+      height: 62,
+    },
+    tabBarActiveTintColor: theme.accent,
+    tabBarInactiveTintColor: theme.textSec,
+    tabBarLabelStyle: { fontSize: 11, marginTop: 2 },
+  };
+}
+
+function ProfesorTabs() {
+  const opciones = useTabOptions();
+  return (
+    <Tab.Navigator screenOptions={opciones}>
       <Tab.Screen name="InicioTab" component={ProfesorHomeScreen}
-        options={{ tabBarLabel: 'Inicio', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
+        options={{ tabBarLabel: 'Inicio', tabBarIcon: icono('🏠') }} />
       <Tab.Screen name="AlumnosTab" component={AlumnosStack}
-        options={{ tabBarLabel: 'Alumnos', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
+        options={{ tabBarLabel: 'Alumnos', tabBarIcon: icono('👥') }} />
       <Tab.Screen name="AsistenciaTab" component={AsistenciaScreen}
-        options={{ tabBarLabel: 'Asistencia', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>✅</Text> }} />
+        options={{ tabBarLabel: 'Asistencia', tabBarIcon: icono('✅') }} />
       <Tab.Screen name="PerfilTab" component={PerfilProfesorScreen}
-        options={{ tabBarLabel: 'Perfil', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
+        options={{ tabBarLabel: 'Perfil', tabBarIcon: icono('👤') }} />
     </Tab.Navigator>
   );
 }
 
 function AlumnoTabs() {
-  const { theme } = useTheme();
+  const opciones = useTabOptions();
   return (
-    <Tab.Navigator screenOptions={{
-      headerShown: false,
-      tabBarStyle: { backgroundColor: theme.surface1, borderTopColor: theme.border, borderTopWidth: 1, paddingBottom: 6, paddingTop: 6, height: 62 },
-      tabBarActiveTintColor: theme.accent,
-      tabBarInactiveTintColor: theme.textSec,
-      tabBarLabelStyle: { fontSize: 11, marginTop: 2 },
-    }}>
+    <Tab.Navigator screenOptions={opciones}>
       <Tab.Screen name="InicioTab" component={AlumnoHomeScreen}
-        options={{ tabBarLabel: 'Inicio', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
+        options={{ tabBarLabel: 'Inicio', tabBarIcon: icono('🏠') }} />
       <Tab.Screen name="RankingTab" component={RankingStack}
-        options={{ tabBarLabel: 'Ranking', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏆</Text> }} />
+        options={{ tabBarLabel: 'Ranking', tabBarIcon: icono('🏆') }} />
       <Tab.Screen name="PerfilTab" component={AlumnoPerfilScreen}
-        options={{ tabBarLabel: 'Perfil', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
+        options={{ tabBarLabel: 'Perfil', tabBarIcon: icono('👤') }} />
     </Tab.Navigator>
+  );
+}
+
+// Stack raíz: las pestañas + el Calendario (se abre desde Inicio o desde Asistencia)
+function ProfesorRoot() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ProfesorTabs" component={ProfesorTabs} />
+      <Stack.Screen name="Calendario" component={CalendarioScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function AlumnoRoot() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="AlumnoTabs" component={AlumnoTabs} />
+      <Stack.Screen name="Calendario" component={CalendarioScreen} />
+    </Stack.Navigator>
   );
 }
 
 function RootNavigator() {
   const { user } = useAuth();
   if (!user) return <LoginScreen />;
-  if (user.rol === 'profesor') return <ProfesorTabs />;
-  return <AlumnoTabs />;
+  if (user.rol === 'profesor') return <ProfesorRoot />;
+  return <AlumnoRoot />;
 }
 
 export default function App() {
   return (
     <ThemeProvider>
       <AlumnosProvider>
-        <AuthProvider>
-          <NavigationContainer>
-            <StatusBar style="auto" />
-            <RootNavigator />
-          </NavigationContainer>
-        </AuthProvider>
+        <EventosProvider>
+          <AuthProvider>
+            <NavigationContainer>
+              <StatusBar style="auto" />
+              <RootNavigator />
+            </NavigationContainer>
+          </AuthProvider>
+        </EventosProvider>
       </AlumnosProvider>
     </ThemeProvider>
   );

@@ -10,6 +10,7 @@ import { useAlumnos } from '../../../context/AlumnosContext';
 import { meses } from '../../../data/mockData';
 import ScreenHeader from '../../../components/ScreenHeader';
 import Avatar from '../../../components/Avatar';
+import CalendarioAsistencia from '../../../components/CalendarioAsistencia';
 
 const MES_ACTUAL = new Date().getMonth() + 1;
 const FONT_SIZES = [
@@ -108,6 +109,12 @@ export default function AlumnoPerfilScreen() {
               </View>
             ))}
           </View>
+
+          {/* Calendario de asistencia */}
+          <Text style={[styles.sectionTitle, { color: theme.textPrim, fontSize: fs(16) }]}>
+            Mi asistencia
+          </Text>
+          <CalendarioAsistencia alumnoId={alumno.id} />
 
           {/* Pagos — solo lectura */}
           <Text style={[styles.sectionTitle, { color: theme.textPrim, fontSize: fs(16) }]}>
