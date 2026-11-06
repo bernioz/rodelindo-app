@@ -3,7 +3,6 @@ import { toKey } from '../utils/fechas';
 import { fechasSemilla, generarSesiones, calcAsistencia, historialAlumno } from '../utils/asistencia';
 
 // "semilla" = % de asistencia aproximado con el que se generan las clases de prueba.
-// El % real que se muestra en la app se calcula siempre a partir de las sesiones guardadas.
 const SEMILLA = [
   { id: 1, nombre_completo: 'Mateo González', categoria: 'Sub-12', semilla: 87, numero_camiseta: 10, posicion: 'Delantero', goles: 12, partidos: 10, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:false } },
   { id: 2, nombre_completo: 'Pablo Herrera', categoria: 'Sub-12', semilla: 92, numero_camiseta: 7, posicion: 'Mediocampista', goles: 8, partidos: 12, matricula: true, pagos: { 3:true,4:true,5:true,6:true,7:true } },
@@ -26,7 +25,38 @@ const INICIO_TEMPORADA = FECHAS_INICIALES[0];
 const ALUMNOS_INICIALES = SEMILLA.map((a) => ({ ...a, fechaIngreso: INICIO_TEMPORADA }));
 const SESIONES_INICIALES = generarSesiones(ALUMNOS_INICIALES, FECHAS_INICIALES);
 
-// Ciclo de un mes: sin definir → pagado → pendiente → no aplica → sin definir
+// Torneos iniciales en cuotas
+const TORNEOS_INICIALES = [
+  {
+    id: 1,
+    nombre: 'Copa Primavera Concepción 2026',
+    montoTotal: 30000,
+    cuotas: 3,
+    valorCuota: 10000,
+    categorias: ['Sub-10', 'Sub-12', 'Sub-14'],
+    pagosAlumnos: {
+      1: { 1: true, 2: true, 3: false },
+      2: { 1: true, 2: true, 3: true },
+      3: { 1: false, 2: false, 3: false },
+      4: { 1: true, 2: true, 3: true },
+      6: { 1: true, 2: false, 3: false },
+    },
+  },
+  {
+    id: 2,
+    nombre: 'Torneo Inter-Escuelas Biobío',
+    montoTotal: 20000,
+    cuotas: 2,
+    valorCuota: 10000,
+    categorias: ['Sub-12', 'Sub-16'],
+    pagosAlumnos: {
+      1: { 1: true, 2: false },
+      2: { 1: true, 2: true },
+      13: { 1: true, 2: false },
+    },
+  },
+];
+
 const siguienteEstado = (actual) => {
   if (actual === undefined) return true;
   if (actual === true) return false;
@@ -39,6 +69,7 @@ const AlumnosContext = createContext(null);
 export function AlumnosProvider({ children }) {
   const [base, setBase] = useState(ALUMNOS_INICIALES);
   const [sesiones, setSesiones] = useState(SESIONES_INICIALES);
+  const [torneos, setTorneos] = useState(TORNEOS_INICIALES);
 
   // Alumnos con su % de asistencia calculado desde las sesiones
   const alumnos = useMemo(
@@ -52,14 +83,24 @@ export function AlumnosProvider({ children }) {
       {
         ...alumno,
         id: Date.now(),
-        numero_camiseta: alumno.numero_camiseta || 99,
-        posicion: alumno.posicion || 'Por definir',
+        numero_camiseta: parseInt(alumno.numero_camiseta) || 10,
+        posicion: alumno.posicion || 'Delantero',
         goles: 0,
         partidos: 0,
         pagos: {},
         fechaIngreso: toKey(new Date()),
       },
     ]);
+  };
+
+  const actualizarAlumno = (id, datosActualizados) => {
+    setBase((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, ...datosActualizados } : a))
+    );
+  };
+
+  const eliminarAlumno = (id) => {
+    setBase((prev) => prev.filter((a) => a.id !== id));
   };
 
   const getByCategoria = (cat) => alumnos.filter((a) => a.categoria === cat);
@@ -81,16 +122,13 @@ export function AlumnosProvider({ children }) {
     ));
   };
 
-  // uri = null quita la foto
   const actualizarFoto = (alumnoId, uri) => {
     setBase((prev) => prev.map((a) => (a.id === alumnoId ? { ...a, foto: uri } : a)));
   };
 
-  // ---- Asistencia por clase ----
   const getSesion = (categoria, fecha) =>
     sesiones.find((s) => s.categoria === categoria && s.fecha === fecha);
 
-  // Crea o reemplaza la sesión de una categoría en una fecha
   const guardarAsistencia = (categoria, fecha, presentes) => {
     setSesiones((prev) => {
       const i = prev.findIndex((s) => s.categoria === categoria && s.fecha === fecha);
@@ -103,18 +141,61 @@ export function AlumnosProvider({ children }) {
     });
   };
 
-  // { 'YYYY-MM-DD': true|false } para el calendario de un alumno
   const getHistorial = (alumnoId) => {
     const alumno = base.find((a) => a.id === alumnoId);
     return alumno ? historialAlumno(alumno, sesiones) : {};
   };
 
+  // ---- Gestión de Torneos ----
+  const agregarTorneo = (nuevoTorneo) => {
+    const numCuotas = parseInt(nuevoTorneo.cuotas) || 1;
+    const monto = parseInt(nuevoTorneo.montoTotal) || 0;
+    const nuevo = {
+      id: Date.now(),
+      nombre: nuevoTorneo.nombre,
+      montoTotal: monto,
+      cuotas: numCuotas,
+      valorCuota: Math.round(monto / numCuotas),
+      categorias: nuevoTorneo.categorias || ['Sub-12'],
+      pagosAlumnos: {},
+    };
+    setTorneos((prev) => [...prev, nuevo]);
+  };
+
+  const actualizarPagoTorneo = (torneoId, alumnoId, cuotaNum) => {
+    setTorneos((prev) =>
+      prev.map((t) => {
+        if (t.id !== torneoId) return t;
+        const pagosAlu = t.pagosAlumnos[alumnoId] || {};
+        const actual = pagosAlu[cuotaNum];
+        // Toggle: true (pagado) -> false (pendiente) -> undefined (sin marcar) -> true
+        const siguiente = actual === true ? false : actual === false ? undefined : true;
+
+        const nuevosPagosAlu = { ...pagosAlu };
+        if (siguiente === undefined) {
+          delete nuevosPagosAlu[cuotaNum];
+        } else {
+          nuevosPagosAlu[cuotaNum] = siguiente;
+        }
+
+        return {
+          ...t,
+          pagosAlumnos: {
+            ...t.pagosAlumnos,
+            [alumnoId]: nuevosPagosAlu,
+          },
+        };
+      })
+    );
+  };
+
   return (
     <AlumnosContext.Provider
       value={{
-        alumnos, agregarAlumno, getByCategoria,
+        alumnos, agregarAlumno, actualizarAlumno, eliminarAlumno, getByCategoria,
         actualizarPago, actualizarMatricula, actualizarFoto,
         sesiones, getSesion, guardarAsistencia, getHistorial,
+        torneos, agregarTorneo, actualizarPagoTorneo,
       }}
     >
       {children}

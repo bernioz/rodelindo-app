@@ -9,6 +9,7 @@ export function AuthProvider({ children }) {
     const usuarios = {
       alumno: { nombre: 'Mateo González', rol: 'alumno', categoria: 'Sub-12', alumnoId: 1 },
       profesor: { nombre: 'Prof. Rodrigo Vera', rol: 'profesor', categoria: null },
+      admin: { nombre: 'Sebastián Varela', rol: 'admin', categoria: null },
     };
     setUser(usuarios[role]);
   };

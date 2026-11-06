@@ -16,8 +16,13 @@ export default function LoginScreen() {
       login('alumno');
     } else if (email === 'profesor@test.com' && password === '1234') {
       login('profesor');
+    } else if (email === 'admin@test.com' && password === '1234') {
+      login('admin');
     } else {
-      Alert.alert('Error', 'Correo o contraseña incorrectos.\n\nPrueba:\nalumno@test.com / 1234\nprofesor@test.com / 1234');
+      Alert.alert(
+        'Error',
+        'Correo o contraseña incorrectos.\n\nPrueba:\nalumno@test.com / 1234\nprofesor@test.com / 1234\nadmin@test.com / 1234'
+      );
     }
   };
 
@@ -72,6 +77,7 @@ export default function LoginScreen() {
           <Text style={styles.hintTitle}>Credenciales de prueba</Text>
           <Text style={styles.hintText}>alumno@test.com · 1234</Text>
           <Text style={styles.hintText}>profesor@test.com · 1234</Text>
+          <Text style={styles.hintText}>admin@test.com · 1234</Text>
         </View>
 
       </View>
