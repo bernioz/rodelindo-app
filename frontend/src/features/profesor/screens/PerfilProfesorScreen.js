@@ -8,6 +8,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
 import { categorias } from '../../../data/mockData';
 import ScreenHeader from '../../../components/ScreenHeader';
+import SeccionNotificaciones from '../../../components/SeccionNotificaciones';
 
 const FONT_SIZES = [
   { label: 'Pequeño', value: 0.85 },
@@ -22,7 +23,7 @@ export default function PerfilProfesorScreen() {
 
   const totalAlumnos = categorias.reduce((acc, cat) => acc + getByCategoria(cat).length, 0);
 
-  // Estado configuración
+  // Configuración editable
   const [modalConfig, setModalConfig] = useState(false);
   const [config, setConfig] = useState({
     nombre: user.nombre,
@@ -50,12 +51,10 @@ export default function PerfilProfesorScreen() {
           <View style={styles.profileHeader}>
             <View style={[styles.avatar, { backgroundColor: theme.accentDark }]}>
               <Text style={styles.avatarText}>
-                {user.nombre.split(' ').slice(0,2).map((n) => n[0]).join('')}
+                {user.nombre.split(' ').slice(0, 2).map((n) => n[0]).join('')}
               </Text>
             </View>
-            <Text style={[styles.nombre, { color: theme.textPrim, fontSize: fs(22) }]}>
-              {config.nombre}
-            </Text>
+            <Text style={[styles.nombre, { color: theme.textPrim, fontSize: fs(22) }]}>{config.nombre}</Text>
             <Text style={[styles.rol, { color: theme.textSec, fontSize: fs(13) }]}>
               Profesor · {config.institucion}
             </Text>
@@ -93,7 +92,7 @@ export default function PerfilProfesorScreen() {
             </View>
           ))}
 
-          {/* ── CONFIGURACIÓN ── */}
+          {/* Configuración */}
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.textPrim, fontSize: fs(16) }]}>
               Configuración
@@ -117,13 +116,14 @@ export default function PerfilProfesorScreen() {
             ))}
           </View>
 
-          {/* ── ACCESIBILIDAD ── */}
+          {/* Recordatorios */}
+          <SeccionNotificaciones />
+
+          {/* Accesibilidad */}
           <Text style={[styles.sectionTitle, { color: theme.textPrim, fontSize: fs(16) }]}>
             Accesibilidad
           </Text>
           <View style={[styles.infoCard, { backgroundColor: theme.surface1 }]}>
-
-            {/* Tema */}
             <View style={[styles.accessRow, { borderBottomColor: theme.border }]}>
               <View>
                 <Text style={[styles.accessLabel, { color: theme.textPrim, fontSize: fs(14) }]}>
@@ -141,7 +141,6 @@ export default function PerfilProfesorScreen() {
               />
             </View>
 
-            {/* Tamaño fuente */}
             <View style={styles.accessRow}>
               <Text style={[styles.accessLabel, { color: theme.textPrim, fontSize: fs(14) }]}>
                 Tamaño de letra
@@ -160,7 +159,6 @@ export default function PerfilProfesorScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-
           </View>
 
           {/* Cerrar sesión */}

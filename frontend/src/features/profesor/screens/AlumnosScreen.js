@@ -6,22 +6,12 @@ import {
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
 import { meses } from '../../../data/mockData';
+import { mesActual, mesesAdeudados, textoDeuda } from '../../../utils/pagos';
 import ScreenHeader from '../../../components/ScreenHeader';
 import Avatar from '../../../components/Avatar';
 
 const CATS = ['Sub-8', 'Sub-10', 'Sub-12', 'Sub-14', 'Sub-16'];
-
-const MES_ACTUAL = new Date().getMonth() + 1;
-
-const mesesTranscurridos = Object.keys(meses)
-  .map(Number)
-  .filter((m) => m <= MES_ACTUAL);
-
-// Matrícula automática: todos los meses transcurridos pagados o "no aplica"
-const calcularMatricula = (pagos) => {
-  if (mesesTranscurridos.length === 0) return false;
-  return mesesTranscurridos.every((m) => pagos[m] === true || pagos[m] === 'na');
-};
+const MES_ACTUAL = mesActual();
 
 export default function AlumnosScreen({ navigation }) {
   const { theme, fontSize } = useTheme();
@@ -50,7 +40,7 @@ export default function AlumnosScreen({ navigation }) {
 
   const guardarAlumno = () => {
     if (!draft.nombre_completo.trim()) return;
-    agregarAlumno({ ...draft, matricula: false });
+    agregarAlumno({ ...draft });
     setCategoriaActiva(draft.categoria);
     setDraft({ nombre_completo: '', categoria: 'Sub-12' });
     setModal(false);
@@ -109,7 +99,7 @@ export default function AlumnosScreen({ navigation }) {
           </View>
         }
         renderItem={({ item }) => {
-          const matriculaAuto = calcularMatricula(item.pagos);
+          const debe = mesesAdeudados(item.pagos).length;
           return (
             <TouchableOpacity
               style={[styles.alumnoCard, { backgroundColor: theme.surface1 }]}
@@ -134,13 +124,13 @@ export default function AlumnosScreen({ navigation }) {
                 </View>
               </View>
 
-              {/* Chips de pagos */}
+              {/* Chips de pagos: matrícula automática + los 12 meses */}
               <View style={styles.pagosRow}>
                 <View style={[styles.matriculaChip,
-                  matriculaAuto ? styles.chipPagado : styles.chipPendiente]}>
+                  item.matricula ? styles.chipPagado : styles.chipPendiente]}>
                   <Text style={[styles.chipText,
-                    matriculaAuto ? styles.chipTextPagado : styles.chipTextPendiente]}>
-                    {matriculaAuto ? 'Al día ✓' : 'Debe cuotas'}
+                    item.matricula ? styles.chipTextPagado : styles.chipTextPendiente]}>
+                    {item.matricula ? 'Al día ✓' : textoDeuda(debe)}
                   </Text>
                 </View>
 
@@ -201,6 +191,10 @@ export default function AlumnosScreen({ navigation }) {
               ))}
             </View>
 
+            <Text style={[styles.nota, { color: theme.textMuted }]}>
+              Los meses anteriores a su ingreso quedan como "no aplica".
+            </Text>
+
             <View style={styles.modalBtns}>
               <TouchableOpacity
                 style={[styles.modalCancel, { backgroundColor: theme.bg, borderColor: theme.border }]}
@@ -246,6 +240,7 @@ const styles = StyleSheet.create({
   chipPendiente: { backgroundColor: 'rgba(255,90,95,0.15)' },
   chipTextPagado: { color: '#3DDC84' },
   chipTextPendiente: { color: '#FF5A5F' },
+  nota: { fontSize: 11, marginTop: 14 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   modalCard: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 44 },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },

@@ -8,9 +8,11 @@ import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
 import { meses } from '../../../data/mockData';
+import { mesesAdeudados, textoDeuda, contarPagados } from '../../../utils/pagos';
 import ScreenHeader from '../../../components/ScreenHeader';
 import Avatar from '../../../components/Avatar';
 import CalendarioAsistencia from '../../../components/CalendarioAsistencia';
+import SeccionNotificaciones from '../../../components/SeccionNotificaciones';
 
 const FONT_SIZES = [
   { label: 'Pequeño', value: 0.85 },
@@ -40,7 +42,8 @@ export default function AlumnoPerfilScreen() {
   if (!alumno) return null;
 
   const fs = (s) => s * fontSize;
-  const mesesPagados = Object.values(alumno.pagos).filter((v) => v === true).length;
+  const mesesPagados = contarPagados(alumno.pagos);
+  const debe = mesesAdeudados(alumno.pagos).length;
   const MES_ACTUAL = new Date().getMonth() + 1;
 
   // Posición en el ranking de su categoría
@@ -238,7 +241,7 @@ export default function AlumnoPerfilScreen() {
               </View>
 
               <Text style={[styles.sectionTitle, { color: theme.textPrim, fontSize: fs(16) }]}>
-                Estado de pagos 2026
+                Estado de pagos {new Date().getFullYear()}
               </Text>
               <View style={[styles.pagosCard, { backgroundColor: theme.surface1 }]}>
                 <View style={styles.matriculaRow}>
@@ -247,7 +250,7 @@ export default function AlumnoPerfilScreen() {
                     <Text style={[styles.estadoBadgeText,
                       alumno.matricula ? styles.badgeTextPagado : styles.badgeTextPendiente,
                       { fontSize: fs(12) }]}>
-                      {alumno.matricula ? 'Pagada ✓' : 'Pendiente ✗'}
+                      {alumno.matricula ? 'Al día ✓' : textoDeuda(debe)}
                     </Text>
                   </View>
                 </View>
@@ -321,6 +324,8 @@ export default function AlumnoPerfilScreen() {
                   ))}
                 </View>
               </View>
+
+              <SeccionNotificaciones />
 
               <TouchableOpacity
                 style={[styles.logoutBtn, { backgroundColor: theme.surface1, borderColor: '#FF5A5F' }]}

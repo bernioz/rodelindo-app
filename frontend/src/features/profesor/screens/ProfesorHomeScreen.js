@@ -30,6 +30,8 @@ export default function ProfesorHomeScreen() {
     { icono: '👥', label: 'Alumnos', onPress: () => navigation.navigate('AlumnosTab') },
     { icono: '✅', label: 'Asistencia', onPress: () => navigation.navigate('AsistenciaTab') },
     { icono: '📅', label: 'Calendario', onPress: () => navigation.navigate('Calendario') },
+    { icono: '📰', label: 'Noticias', onPress: () => navigation.navigate('Noticias', { conVolver: true }) },
+    { icono: '🖼', label: 'Galería', onPress: () => navigation.navigate('Galeria', { conVolver: true }) },
   ];
 
   return (
@@ -112,8 +114,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingBottom: 60 },
   inner: { padding: 24 },
-  acciones: { flexDirection: 'row', gap: 10, marginBottom: 26 },
-  accionCard: { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', gap: 6, borderWidth: 1 },
+  acciones: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 26 },
+  accionCard: { flexGrow: 1, flexBasis: '28%', borderRadius: 12, paddingVertical: 14, alignItems: 'center', gap: 6, borderWidth: 1 },
   accionIcono: { fontSize: 24 },
   accionLabel: { fontWeight: 'bold' },
   seccionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },

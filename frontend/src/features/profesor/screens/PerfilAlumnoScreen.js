@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
+import { mesesAdeudados, textoDeuda, contarPagados } from '../../../utils/pagos';
 import { meses } from '../../../data/mockData';
 import ScreenHeader from '../../../components/ScreenHeader';
 import Avatar from '../../../components/Avatar';
@@ -9,7 +10,7 @@ import CalendarioAsistencia from '../../../components/CalendarioAsistencia';
 
 export default function PerfilAlumnoScreen({ route, navigation }) {
   const { theme, fontSize } = useTheme();
-  const { alumnos, actualizarPago, actualizarMatricula } = useAlumnos();
+  const { alumnos, actualizarPago } = useAlumnos();
   const alumno = alumnos.find((a) => a.id === route.params.alumnoId);
 
   if (!alumno) return (
@@ -24,7 +25,8 @@ export default function PerfilAlumnoScreen({ route, navigation }) {
     return '#FF5A5F';
   };
 
-  const mesesPagados = Object.values(alumno.pagos).filter((v) => v === true).length;
+  const mesesPagados = contarPagados(alumno.pagos);
+  const debe = mesesAdeudados(alumno.pagos).length;
 
   const mesEstilos = (pagado) => {
     if (pagado === true)  return { bg: 'rgba(61,220,132,0.15)', color: '#3DDC84', simbolo: '✓' };
@@ -81,28 +83,26 @@ export default function PerfilAlumnoScreen({ route, navigation }) {
 
         {/* Pagos */}
         <Text style={[styles.sectionTitle, { color: theme.textPrim, fontSize: 16 * fontSize }]}>
-          Estado de pagos 2025
+          Estado de pagos {new Date().getFullYear()}
         </Text>
         <View style={[styles.pagosCard, { backgroundColor: theme.surface1 }]}>
 
-          {/* Matrícula — clickeable */}
-          <TouchableOpacity
-            style={styles.matriculaRow}
-            onPress={() => actualizarMatricula(alumno.id)}
-            activeOpacity={0.7}
-          >
-            <View>
+          {/* Matrícula — automática (no se edita a mano) */}
+          <View style={styles.matriculaRow}>
+            <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={[styles.pagosLabel, { color: theme.textPrim }]}>Matrícula</Text>
-              <Text style={[styles.tapHint, { color: theme.textMuted }]}>Toca para cambiar</Text>
+              <Text style={[styles.tapHint, { color: theme.textMuted }]}>
+                Automática: al día cuando todos los meses hasta hoy están pagados o "no aplica"
+              </Text>
             </View>
             <View style={[styles.estadoBadge,
               alumno.matricula ? styles.badgePagado : styles.badgePendiente]}>
               <Text style={[styles.estadoBadgeText,
                 alumno.matricula ? styles.badgeTextPagado : styles.badgeTextPendiente]}>
-                {alumno.matricula ? 'Pagada ✓' : 'Pendiente ✗'}
+                {alumno.matricula ? 'Al día ✓' : textoDeuda(debe)}
               </Text>
             </View>
-          </TouchableOpacity>
+          </View>
 
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
 

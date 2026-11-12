@@ -9,10 +9,14 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { AlumnosProvider } from './src/context/AlumnosContext';
 import { EventosProvider } from './src/context/EventosContext';
+import { ComunidadProvider } from './src/context/ComunidadContext';
+import { RecordatoriosProvider } from './src/context/RecordatoriosContext';
 
 // Común
 import LoginScreen from './src/features/auth/screens/LoginScreen';
 import CalendarioScreen from './src/features/calendario/screens/CalendarioScreen';
+import NoticiasScreen from './src/features/comunidad/screens/NoticiasScreen';
+import GaleriaScreen from './src/features/comunidad/screens/GaleriaScreen';
 
 // Profesor
 import ProfesorHomeScreen from './src/features/profesor/screens/ProfesorHomeScreen';
@@ -26,8 +30,6 @@ import AlumnoHomeScreen from './src/features/alumno/screens/AlumnoHomeScreen';
 import RankingScreen from './src/features/alumno/screens/RankingScreen';
 import AlumnoPerfilScreen from './src/features/alumno/screens/AlumnoPerfilScreen';
 import PerfilCompaneroScreen from './src/features/alumno/screens/PerfilCompaneroScreen';
-import NewsScreen from './src/features/alumno/screens/NewsScreen';
-import GalleryScreen from './src/features/alumno/screens/GalleryScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -96,9 +98,9 @@ function AlumnoTabs() {
         options={{ tabBarLabel: 'Ranking', tabBarIcon: icono('🏆') }} />
       <Tab.Screen name="PerfilTab" component={AlumnoPerfilScreen}
         options={{ tabBarLabel: 'Perfil', tabBarIcon: icono('👤') }} />
-      <Tab.Screen name="NoticiasTab" component={NewsScreen}
+      <Tab.Screen name="NoticiasTab" component={NoticiasScreen}
         options={{ tabBarLabel: 'Noticias', tabBarIcon: icono('📰') }} />
-      <Tab.Screen name="GaleriaTab" component={GalleryScreen}
+      <Tab.Screen name="GaleriaTab" component={GaleriaScreen}
         options={{ tabBarLabel: 'Galería', tabBarIcon: icono('🖼') }} />
     </Tab.Navigator>
   );
@@ -110,6 +112,8 @@ function ProfesorRoot() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProfesorTabs" component={ProfesorTabs} />
       <Stack.Screen name="Calendario" component={CalendarioScreen} />
+      <Stack.Screen name="Noticias" component={NoticiasScreen} initialParams={{ conVolver: true }} />
+      <Stack.Screen name="Galeria" component={GaleriaScreen} initialParams={{ conVolver: true }} />
     </Stack.Navigator>
   );
 }
@@ -135,12 +139,16 @@ export default function App() {
     <ThemeProvider>
       <AlumnosProvider>
         <EventosProvider>
-          <AuthProvider>
-            <NavigationContainer>
-              <StatusBar style="auto" />
-              <RootNavigator />
-            </NavigationContainer>
-          </AuthProvider>
+          <ComunidadProvider>
+            <AuthProvider>
+              <RecordatoriosProvider>
+                <NavigationContainer>
+                  <StatusBar style="auto" />
+                  <RootNavigator />
+                </NavigationContainer>
+              </RecordatoriosProvider>
+            </AuthProvider>
+          </ComunidadProvider>
         </EventosProvider>
       </AlumnosProvider>
     </ThemeProvider>

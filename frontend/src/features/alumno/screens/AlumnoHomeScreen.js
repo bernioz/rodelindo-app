@@ -8,9 +8,8 @@ import { useEventos } from '../../../context/EventosContext';
 import ScreenHeader from '../../../components/ScreenHeader';
 import EventoRow from '../../../components/EventoRow';
 import { hoyKey } from '../../../utils/fechas';
-
-const MES_ACTUAL = new Date().getMonth() + 1;
-const NOMBRE_MES = new Date().toLocaleDateString('es-CL', { month: 'long' });
+import { meses } from '../../../data/mockData';
+import { mesesAdeudados, contarPagados, textoDeuda } from '../../../utils/pagos';
 
 export default function AlumnoHomeScreen() {
   const { user } = useAuth();
@@ -25,10 +24,10 @@ export default function AlumnoHomeScreen() {
   const fs = (s) => s * fontSize;
   const hoy = hoyKey();
 
-  // Pago del mes: "pagado" o "no aplica" no generan alerta
-  const pagoMesActual = alumno.pagos[MES_ACTUAL];
-  const tienePagoPendiente = pagoMesActual !== true && pagoMesActual !== 'na';
-  const mesesPagados = Object.values(alumno.pagos).filter((v) => v === true).length;
+  // Cuotas vencidas sin pagar (pagado y "no aplica" no cuentan)
+  const adeudados = mesesAdeudados(alumno.pagos);
+  const tienePagoPendiente = adeudados.length > 0;
+  const mesesPagados = contarPagados(alumno.pagos);
 
   // Solo eventos de su categoría (o de todas)
   const proximos = getProximos(hoy, alumno.categoria, 6);
@@ -49,7 +48,7 @@ export default function AlumnoHomeScreen() {
           >
             <Text style={[styles.alertTitle, { fontSize: fs(15) }]}>⚠️ Pago pendiente</Text>
             <Text style={[styles.alertText, { fontSize: fs(13) }]}>
-              La mensualidad de {NOMBRE_MES} aún no ha sido registrada.
+              {textoDeuda(adeudados.length)}: {adeudados.map((m) => meses[m]).join(', ')}.
             </Text>
             <View style={styles.alertBtn}>
               <Text style={[styles.alertBtnText, { fontSize: fs(13) }]}>Ver pagos →</Text>
