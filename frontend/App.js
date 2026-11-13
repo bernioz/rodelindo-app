@@ -38,6 +38,13 @@ import AdminFinanzasScreen from './src/features/admin/screens/AdminFinanzasScree
 import AdminCategoriasScreen from './src/features/admin/screens/AdminCategoriasScreen';
 import AdminPublicacionesScreen from './src/features/admin/screens/AdminPublicacionesScreen';
 
+// Admin
+import AdminHomeScreen from './src/features/admin/screens/AdminHomeScreen';
+import AdminUsuariosScreen from './src/features/admin/screens/AdminUsuariosScreen';
+import AdminFinanzasScreen from './src/features/admin/screens/AdminFinanzasScreen';
+import AdminCategoriasScreen from './src/features/admin/screens/AdminCategoriasScreen';
+import AdminPublicacionesScreen from './src/features/admin/screens/AdminPublicacionesScreen';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
