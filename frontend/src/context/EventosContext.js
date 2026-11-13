@@ -1,18 +1,34 @@
 import React, { createContext, useState, useContext } from 'react';
-import { eventosIniciales, visiblePara, ordenarEventos } from '../utils/eventos';
+import { eventosIniciales, visiblePara, ordenarEventos, normalizarEvento } from '../utils/eventos';
 
 const EventosContext = createContext(null);
 
 export function EventosProvider({ children }) {
   const [eventos, setEventos] = useState(eventosIniciales);
 
+  const nuevoId = () => `ev-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+
+  // Acepta el formato del calendario ({categoria}) y el del admin ({categorias: [...]}):
+  // si vienen varias categorías, se crea un evento por cada una.
   const agregarEvento = (datos) => {
-    const id = `ev-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    setEventos((prev) => [...prev, { ...datos, id }]);
+    const nuevos = normalizarEvento(datos).map((e) => ({ ...e, id: nuevoId() }));
+    setEventos((prev) => [...prev, ...nuevos]);
   };
 
+  // Edita un evento conservando los campos que el formulario no trae (rival, resultado, notas…)
   const editarEvento = (id, datos) => {
-    setEventos((prev) => prev.map((e) => (e.id === id ? { ...datos, id } : e)));
+    setEventos((prev) => {
+      const actual = prev.find((e) => e.id === id);
+      if (!actual) return prev;
+      const mezcla = { ...actual, ...datos };
+      if (datos.categorias) delete mezcla.categoria;   // manda la lista del admin
+      else delete mezcla.categorias;                   // manda la categoría del calendario
+      const [primero, ...resto] = normalizarEvento(mezcla);
+      return [
+        ...prev.map((e) => (e.id === id ? { ...primero, id } : e)),
+        ...resto.map((e) => ({ ...e, id: nuevoId() })),
+      ];
+    });
   };
 
   const eliminarEvento = (id) => {

@@ -15,7 +15,7 @@ export default function CalendarioScreen({ route, navigation }) {
   const { theme, fontSize } = useTheme();
   const { getFechasConEventos } = useEventos();
 
-  const esProfesor = user.rol === 'profesor';
+  const esProfesor = user.rol === 'profesor' || user.rol === 'admin'; // personal del club: ve todo y edita eventos
   const categoriaFiltro = esProfesor ? undefined : user.categoria;
 
   const hoy = hoyKey();
@@ -140,7 +140,7 @@ export default function CalendarioScreen({ route, navigation }) {
             esProfesor={esProfesor}
             categoriaAlumno={user.categoria}
             alumnoId={user.alumnoId}
-            onTomarAsistencia={tomarAsistencia}
+            onTomarAsistencia={user.rol === 'profesor' ? tomarAsistencia : undefined}
           />
         )}
       </ScrollView>

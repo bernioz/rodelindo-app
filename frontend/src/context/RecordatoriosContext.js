@@ -39,6 +39,13 @@ export function RecordatoriosProvider({ children }) {
     }
     usuarioAnterior.current = user;
 
+    // El administrador no recibe recordatorios: no se programa nada ni se pide permiso
+    if (user.rol !== 'alumno' && user.rol !== 'profesor') {
+      ultimaFirma.current = '';
+      encolar(async () => { await cancelarTodo(); });
+      return;
+    }
+
     if (!activos) {
       ultimaFirma.current = '';
       encolar(async () => { await cancelarTodo(); setEstado((s) => ({ ...s, programadas: 0 })); });

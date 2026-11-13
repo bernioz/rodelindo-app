@@ -33,11 +33,23 @@ export function ComunidadProvider({ children }) {
   const nuevoId = (prefijo) => `${prefijo}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
   // ---- Noticias ----
+  // Acepta lo que publica el profesor ({titulo, cuerpo, categoria, imagen}) y lo del admin
+  // ({..., contenido, resumen, tema}): `categoria` es siempre la AUDIENCIA ('Todas' o Sub-XX)
+  // y `tema` el tipo de anuncio (General, Institucional, Deportiva).
+  const armarNoticia = (datos) => {
+    const { contenido, ...resto } = datos;
+    const noticia = { ...resto };
+    if (contenido !== undefined && noticia.cuerpo === undefined) noticia.cuerpo = contenido;
+    return noticia;
+  };
   const publicarNoticia = (datos, autor) => {
-    setNoticias((prev) => [...prev, { ...datos, id: nuevoId('n'), fecha: hoyKey(), autor }]);
+    setNoticias((prev) => [
+      ...prev,
+      { categoria: 'Todas', imagen: null, resumen: '', tema: '', ...armarNoticia(datos), id: nuevoId('n'), fecha: hoyKey(), autor },
+    ]);
   };
   const editarNoticia = (id, datos) => {
-    setNoticias((prev) => prev.map((n) => (n.id === id ? { ...n, ...datos } : n)));
+    setNoticias((prev) => prev.map((n) => (n.id === id ? { ...n, ...armarNoticia(datos) } : n)));
   };
   const eliminarNoticia = (id) => setNoticias((prev) => prev.filter((n) => n.id !== id));
 
@@ -49,12 +61,15 @@ export function ComunidadProvider({ children }) {
 
   // ---- Galería ----
   // uris: lista de fotos elegidas; se suben todas con la misma categoría y descripción
-  const subirFotos = (uris, { categoria, descripcion }) => {
+  const subirFotos = (uris, { categoria, descripcion, tema }) => {
     const fecha = hoyKey();
     setFotos((prev) => [
       ...prev,
-      ...uris.map((uri) => ({ id: nuevoId('f'), uri, categoria, descripcion: descripcion || '', fecha })),
+      ...uris.map((uri) => ({ id: nuevoId('f'), uri, categoria, descripcion: descripcion || '', tema: tema || '', fecha })),
     ]);
+  };
+  const editarFoto = (id, datos) => {
+    setFotos((prev) => prev.map((f) => (f.id === id ? { ...f, ...datos } : f)));
   };
   const eliminarFoto = (id) => setFotos((prev) => prev.filter((f) => f.id !== id));
 
@@ -67,7 +82,7 @@ export function ComunidadProvider({ children }) {
     <ComunidadContext.Provider
       value={{
         noticias, publicarNoticia, editarNoticia, eliminarNoticia, getNoticias,
-        fotos, subirFotos, eliminarFoto, getFotos,
+        fotos, subirFotos, editarFoto, eliminarFoto, getFotos,
       }}
     >
       {children}

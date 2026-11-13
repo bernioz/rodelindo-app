@@ -1,12 +1,13 @@
 import { addDias, hoyKey } from './fechas';
 import { esDiaDeClase } from './asistencia';
 
-export const TIPOS = ['Clase', 'Torneo', 'Reunión', 'Otro'];
+export const TIPOS = ['Clase', 'Partido', 'Torneo', 'Reunión', 'Otro'];
 export const CATEGORIAS = ['Sub-8', 'Sub-10', 'Sub-12', 'Sub-14', 'Sub-16'];
 export const DIRIGIDO_A = ['Apoderados', 'Profesores', 'Todos'];
 
 export const COLOR_TIPO = {
   Clase: '#3DDC84',
+  Partido: '#A06BFF',
   Torneo: '#4285F4',
   'Reunión': '#F5A623',
   Otro: '#8A93A3',
@@ -14,14 +15,15 @@ export const COLOR_TIPO = {
 
 // Qué campos se editan según el tipo de evento
 export const CAMPOS_POR_TIPO = {
-  Clase: ['categoria', 'hora', 'lugar'],
+  Clase: ['titulo', 'categoria', 'hora', 'lugar'],
+  Partido: ['titulo', 'categoria', 'hora', 'lugar', 'rival', 'resultado'],
   Torneo: ['titulo', 'categoria', 'hora', 'lugar', 'rival', 'resultado'],
   'Reunión': ['titulo', 'dirigidoA', 'categoria', 'hora', 'lugar'],
   Otro: ['titulo', 'categoria', 'hora', 'lugar', 'notas'],
 };
 
 const ETIQUETAS = {
-  titulo: { Torneo: 'Nombre del torneo', 'Reunión': 'Motivo de la reunión', Otro: 'Título' },
+  titulo: { Clase: 'Nombre (opcional)', Partido: 'Nombre del partido', Torneo: 'Nombre del torneo', 'Reunión': 'Motivo de la reunión', Otro: 'Título' },
   categoria: 'Categoría',
   dirigidoA: 'Dirigida a',
   hora: 'Hora (ej: 17:30)',
@@ -42,7 +44,7 @@ export const eventoVacio = () => ({
 });
 
 export const tituloEvento = (ev) =>
-  ev.tipo === 'Clase' ? `Entrenamiento ${ev.categoria}` : ev.titulo;
+  ev.tipo === 'Clase' ? ((ev.titulo || '').trim() || `Entrenamiento ${ev.categoria}`) : ev.titulo;
 
 // Línea de detalle: hora · lugar · categoría, etc.
 export const detalleEvento = (ev) => {
@@ -51,7 +53,7 @@ export const detalleEvento = (ev) => {
   if (ev.lugar) partes.push(ev.lugar);
   if (ev.tipo !== 'Clase' && ev.categoria && ev.categoria !== 'Todas') partes.push(ev.categoria);
   if (ev.tipo === 'Reunión' && ev.dirigidoA) partes.push(`para ${ev.dirigidoA.toLowerCase()}`);
-  if (ev.tipo === 'Torneo' && ev.resultado) partes.push(`🏆 ${ev.resultado}`);
+  if ((ev.tipo === 'Torneo' || ev.tipo === 'Partido') && ev.resultado) partes.push(`🏆 ${ev.resultado}`);
   return partes.join(' · ');
 };
 
@@ -68,7 +70,7 @@ export const normalizarHora = (h) => {
 export const validarEvento = (ev) => {
   const errores = {};
   const campos = CAMPOS_POR_TIPO[ev.tipo];
-  if (campos.includes('titulo') && !(ev.titulo || '').trim()) {
+  if (campos.includes('titulo') && ev.tipo !== 'Clase' && !(ev.titulo || '').trim()) {
     errores.titulo = 'Este campo es obligatorio';
   }
   if (ev.hora && !HORA_RE.test(ev.hora.trim())) {
@@ -94,6 +96,46 @@ export const limpiarEvento = (ev) => {
   return limpio;
 };
 
+// ---- Compatibilidad con el módulo del administrador ----
+const ALIAS_TIPO = {
+  Clase: 'Clase', Entrenamiento: 'Clase', Partido: 'Partido', Torneo: 'Torneo',
+  'Reunión': 'Reunión', Reunion: 'Reunión', Otro: 'Otro',
+};
+
+// "17:00 hrs" / "9:30" / "17:00" → "HH:MM" ('' si no se entiende)
+export const normalizarHoraLibre = (h) => {
+  const m = /(\d{1,2}):(\d{2})/.exec(String(h || ''));
+  if (!m) return '';
+  const hh = Number(m[1]);
+  const mm = Number(m[2]);
+  if (hh > 23 || mm > 59) return '';
+  return `${String(hh).padStart(2, '0')}:${m[2]}`;
+};
+
+// Lista de categorías que cubre un evento ('Todas' = las cinco)
+export const categoriasDe = (categoria) =>
+  !categoria || categoria === 'Todas' ? [...CATEGORIAS] : [categoria];
+
+// Devuelve uno o varios eventos en el formato único del sistema.
+// - Del calendario: { categoria: 'Sub-12' | 'Todas' }
+// - Del admin:      { categorias: ['Sub-12', 'Sub-14'] } → un evento por categoría
+// Todo evento guarda además `categorias` (lista) para las pantallas que la usan.
+export const normalizarEvento = (datos) => {
+  const tipo = ALIAS_TIPO[datos.tipo] ?? 'Otro';
+  let lista = Array.isArray(datos.categorias) && datos.categorias.length > 0
+    ? datos.categorias
+    : [datos.categoria || 'Todas'];
+  // Si marcaron las cinco categorías, es un solo evento para todas
+  if (lista.length === CATEGORIAS.length && CATEGORIAS.every((c) => lista.includes(c))) lista = ['Todas'];
+  return lista.map((categoria) => {
+    const ev = { ...eventoVacio(), ...datos, tipo, categoria };
+    ev.hora = normalizarHoraLibre(datos.hora);
+    ev.titulo = (datos.titulo || '').trim();
+    ev.categorias = categoriasDe(categoria);
+    return ev;
+  });
+};
+
 // ¿Lo puede ver alguien de esa categoría? (sin categoría = ve todo, como el profesor)
 export const visiblePara = (ev, categoria) =>
   !categoria || ev.categoria === 'Todas' || ev.categoria === categoria;
@@ -107,7 +149,8 @@ export const eventosIniciales = () => {
   const lista = [];
   let n = 0;
   const add = (e) => {
-    lista.push({ id: `seed-${n++}`, ...eventoVacio(), categoria: 'Todas', dirigidoA: '', ...e });
+    const [ev] = normalizarEvento({ ...eventoVacio(), categoria: 'Todas', dirigidoA: '', ...e });
+    lista.push({ id: `seed-${n++}`, ...ev });
   };
 
   // Calendarización semanal: clases lun/mié/vie

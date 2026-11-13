@@ -31,8 +31,27 @@ import RankingScreen from './src/features/alumno/screens/RankingScreen';
 import AlumnoPerfilScreen from './src/features/alumno/screens/AlumnoPerfilScreen';
 import PerfilCompaneroScreen from './src/features/alumno/screens/PerfilCompaneroScreen';
 
+// Admin
+import AdminHomeScreen from './src/features/admin/screens/AdminHomeScreen';
+import AdminUsuariosScreen from './src/features/admin/screens/AdminUsuariosScreen';
+import AdminFinanzasScreen from './src/features/admin/screens/AdminFinanzasScreen';
+import AdminCategoriasScreen from './src/features/admin/screens/AdminCategoriasScreen';
+import AdminPublicacionesScreen from './src/features/admin/screens/AdminPublicacionesScreen';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+function AdminStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="AdminHome" component={AdminHomeScreen} />
+      <Stack.Screen name="AdminUsuarios" component={AdminUsuariosScreen} />
+      <Stack.Screen name="AdminFinanzas" component={AdminFinanzasScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="AdminCategorias" component={AdminCategoriasScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="AdminPublicaciones" component={AdminPublicacionesScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  );
+}
 
 function AlumnosStack() {
   return (
@@ -72,6 +91,19 @@ function useTabOptions() {
   };
 }
 
+function AdminTabs() {
+  const opciones = useTabOptions();
+  return (
+    <Tab.Navigator screenOptions={opciones}>
+      <Tab.Screen
+        name="AdminInicioTab"
+        component={AdminStack}
+        options={{ tabBarLabel: 'Inicio', tabBarIcon: icono('🏠') }}
+      />
+    </Tab.Navigator>
+  );
+}
+
 function ProfesorTabs() {
   const opciones = useTabOptions();
   return (
@@ -106,7 +138,16 @@ function AlumnoTabs() {
   );
 }
 
-// Stack raíz: las pestañas + el Calendario (se abre desde Inicio o desde Asistencia)
+// Stacks raíz por rol
+function AdminRoot() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="AdminTabs" component={AdminTabs} />
+      <Stack.Screen name="Calendario" component={CalendarioScreen} />
+    </Stack.Navigator>
+  );
+}
+
 function ProfesorRoot() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -130,6 +171,7 @@ function AlumnoRoot() {
 function RootNavigator() {
   const { user } = useAuth();
   if (!user) return <LoginScreen />;
+  if (user.rol === 'admin') return <AdminRoot />;
   if (user.rol === 'profesor') return <ProfesorRoot />;
   return <AlumnoRoot />;
 }

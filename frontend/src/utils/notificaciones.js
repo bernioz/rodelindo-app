@@ -46,7 +46,7 @@ export const planificarRecordatorios = ({ rol, categoria, alumno, eventos, sesio
           });
         }
         // Torneos y reuniones: además, aviso el día anterior
-        if (e.tipo === 'Torneo' || e.tipo === 'Reunión') {
+        if (e.tipo === 'Torneo' || e.tipo === 'Partido' || e.tipo === 'Reunión') {
           plan.push({
             id: `ev-${e.id}-vispera`, tipo: 'fecha', fecha: aFecha(addDias(e.fecha, -1), '18:00'),
             titulo: `Mañana: ${tituloEvento(e)}`, cuerpo: detalle,

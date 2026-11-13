@@ -164,7 +164,7 @@ export default function VistaDia({
                     <Text style={{ color: theme.textMuted, fontSize: fs(12) }}>Sin registrar</Text>
                   )}
                 </View>
-                {esProfesor && (
+                {esProfesor && onTomarAsistencia && (
                   <TouchableOpacity
                     onPress={() => onTomarAsistencia(f.cat)}
                     style={[styles.btnAsist, { borderColor: theme.accent }]}

@@ -122,7 +122,7 @@ export default function GaleriaScreen({ route, navigation }) {
               <View style={styles.visorInfo}>
                 {visor.descripcion ? <Text style={styles.visorTexto}>{visor.descripcion}</Text> : null}
                 <Text style={styles.visorMeta}>
-                  {visor.categoria === 'Todas' ? 'Todas las categorías' : visor.categoria} · {formatLargo(visor.fecha)}
+                  {visor.tema ? `${visor.tema} · ` : ''}{visor.categoria === 'Todas' ? 'Todas las categorías' : visor.categoria} · {formatLargo(visor.fecha)}
                 </Text>
               </View>
               <View style={styles.visorBotones}>
