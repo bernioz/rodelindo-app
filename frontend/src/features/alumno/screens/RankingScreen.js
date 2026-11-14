@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
@@ -7,17 +7,22 @@ import ScreenHeader from '../../../components/ScreenHeader';
 import Avatar from '../../../components/Avatar';
 
 const MEDALLAS = ['🥇', '🥈', '🥉'];
+const CATEGORIAS_FILTRO = ['Todas', 'Sub-8', 'Sub-10', 'Sub-12', 'Sub-14', 'Sub-16'];
 
 export default function RankingScreen({ navigation }) {
   const { user } = useAuth();
   const { theme, fontSize } = useTheme();
-  const { getByCategoria } = useAlumnos();
+  const { alumnos, getByCategoria } = useAlumnos();
 
-  const categoria = user.categoria ?? 'Sub-12';
-  const alumno = getByCategoria(categoria).find((a) => a.id === user.alumnoId);
+  const miCategoria = user.categoria ?? 'Sub-12';
+  const [catFiltro, setCatFiltro] = useState(miCategoria);
 
-  const ranking = [...getByCategoria(categoria)].sort((a, b) => b.asistencia - a.asistencia);
-  const posicion = ranking.findIndex((a) => a.id === user.alumnoId) + 1;
+  const alumno = getByCategoria(miCategoria).find((a) => a.id === user.alumnoId);
+  const miRanking = [...getByCategoria(miCategoria)].sort((a, b) => b.asistencia - a.asistencia);
+  const miPosicion = miRanking.findIndex((a) => a.id === user.alumnoId) + 1;
+
+  const listaBase = catFiltro === 'Todas' ? alumnos : getByCategoria(catFiltro);
+  const ranking = [...listaBase].sort((a, b) => b.asistencia - a.asistencia);
 
   const colorPct = (pct) => {
     if (pct >= 80) return theme.accent;
@@ -35,19 +40,24 @@ export default function RankingScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
-      <ScreenHeader title={`Ranking ${categoria}`} subtitle="Asistencia · Temporada 2026" />
+      <ScreenHeader
+        title={catFiltro === 'Todas' ? 'Ranking General' : `Ranking ${catFiltro}`}
+        subtitle={catFiltro === 'Todas' ? 'Todas las categorías · Temporada 2026' : `Asistencia ${catFiltro} · Temporada 2026`}
+      />
 
-      {/* Tu posición */}
+      {/* Tu posición en tu categoría */}
       {alumno && (
         <TouchableOpacity
           style={[styles.miPosicion, { backgroundColor: theme.accentDark }]}
           activeOpacity={0.85}
           onPress={() => navigation.navigate('PerfilTab')}
         >
-          <Text style={[styles.miPosLabel, { fontSize: fs(12) }]}>Tu posición (Toca para ver)</Text>
+          <Text style={[styles.miPosLabel, { fontSize: fs(12) }]}>
+            Tu posición en {miCategoria} (Toca para ver)
+          </Text>
           <View style={styles.miPosRow}>
             <Text style={[styles.miPosNum, { fontSize: fs(36) }]}>
-              {posicion <= 3 ? MEDALLAS[posicion - 1] : `#${posicion}`}
+              {miPosicion <= 3 ? MEDALLAS[miPosicion - 1] : `#${miPosicion}`}
             </Text>
             <View style={styles.miPosInfo}>
               <Text style={[styles.miPosNombre, { fontSize: fs(16) }]}>
@@ -57,12 +67,46 @@ export default function RankingScreen({ navigation }) {
             </View>
             <View style={styles.miPosBarra}>
               <Text style={[styles.miPosBarraLabel, { fontSize: fs(10) }]}>
-                de {ranking.length} alumnos
+                de {miRanking.length} alumnos
               </Text>
             </View>
           </View>
         </TouchableOpacity>
       )}
+
+      {/* Selector de Categorías (Todas o Sub-8 a Sub-16) */}
+      <View style={styles.filtroWrap}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtroRow}
+        >
+          {CATEGORIAS_FILTRO.map((cat) => {
+            const activo = catFiltro === cat;
+            return (
+              <TouchableOpacity
+                key={cat}
+                onPress={() => setCatFiltro(cat)}
+                style={[
+                  styles.chip,
+                  { backgroundColor: theme.surface1, borderColor: theme.border },
+                  activo && { backgroundColor: theme.accentDark, borderColor: theme.accent },
+                ]}
+              >
+                <Text
+                  style={{
+                    fontSize: fs(12),
+                    color: activo ? '#fff' : theme.textSec,
+                    fontWeight: activo ? 'bold' : '500',
+                  }}
+                >
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       <Text style={[styles.hint, { color: theme.textMuted, fontSize: fs(11) }]}>
         Toca a un compañero para ver su perfil
@@ -96,11 +140,14 @@ export default function RankingScreen({ navigation }) {
 
               <Avatar alumno={item} size={36} highlight={esTuyo} />
 
-              {/* Nombre */}
+              {/* Nombre y serie */}
               <View style={styles.rankInfo}>
                 <Text style={[styles.rankNombre, { color: theme.textPrim, fontSize: fs(14) }]}>
                   {item.nombre_completo}
                   {esTuyo && <Text style={{ color: theme.accent }}> (tú)</Text>}
+                </Text>
+                <Text style={{ color: theme.textMuted, fontSize: fs(11), marginTop: 2 }}>
+                  {catFiltro === 'Todas' ? `${item.categoria} · ` : ''}#{item.numero_camiseta || 10} · {item.posicion || 'Jugador'}
                 </Text>
               </View>
 
@@ -126,7 +173,7 @@ export default function RankingScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  miPosicion: { margin: 20, marginBottom: 8, borderRadius: 14, padding: 16 },
+  miPosicion: { marginHorizontal: 20, marginTop: 14, marginBottom: 6, borderRadius: 14, padding: 16 },
   miPosLabel: { color: 'rgba(255,255,255,0.7)', marginBottom: 8 },
   miPosRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   miPosNum: { color: '#fff', fontWeight: 'bold' },
@@ -135,7 +182,10 @@ const styles = StyleSheet.create({
   miPosAsist: { color: '#3DDC84', fontWeight: 'bold' },
   miPosBarra: { alignItems: 'flex-end' },
   miPosBarraLabel: { color: 'rgba(255,255,255,0.6)' },
-  hint: { textAlign: 'center', marginBottom: 8 },
+  filtroWrap: { height: 46, flexShrink: 0, marginTop: 4 },
+  filtroRow: { paddingHorizontal: 20, gap: 8, alignItems: 'center', paddingVertical: 6 },
+  chip: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1 },
+  hint: { textAlign: 'center', marginTop: 4, marginBottom: 8 },
   lista: { paddingHorizontal: 20, paddingBottom: 40 },
   rankRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 12, marginBottom: 8, gap: 10 },
   rankPos: { width: 32, alignItems: 'center' },

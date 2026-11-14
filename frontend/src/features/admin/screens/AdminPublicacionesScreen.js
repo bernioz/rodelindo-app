@@ -157,7 +157,7 @@ export default function AdminPublicacionesScreen({ navigation }) {
       editarNoticia(editandoNoticiaId, datos);
       Alert.alert('Éxito', 'La noticia ha sido actualizada correctamente.');
     } else {
-      publicarNoticia(datos, user.nombre);
+      publicarNoticia(datos, user?.nombre || 'Dirección');
       Alert.alert('Éxito', 'La noticia ha sido publicada.');
     }
 
@@ -321,12 +321,15 @@ export default function AdminPublicacionesScreen({ navigation }) {
 
   const eventosFiltrados = eventos.filter((ev) => {
     const coincideTexto =
-      ev.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
+      tituloEvento(ev).toLowerCase().includes(busqueda.toLowerCase()) ||
       (ev.lugar && ev.lugar.toLowerCase().includes(busqueda.toLowerCase()));
 
     const coincideCategoria =
       filtroCatEvento === 'Todas' ||
-      (ev.categorias && ev.categorias.includes(filtroCatEvento));
+      ev.categoria === 'Todas' ||
+      !ev.categorias ||
+      ev.categorias.includes('Todas') ||
+      ev.categorias.includes(filtroCatEvento);
 
     return coincideTexto && coincideCategoria;
   });

@@ -2,11 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
+import { useTutorial } from '../../../context/TutorialContext';
 import ScreenHeader from '../../../components/ScreenHeader';
 
 export default function AdminHomeScreen({ navigation }) {
   const { logout } = useAuth();
   const { theme, fontSize } = useTheme();
+  const { abrirTutorial } = useTutorial();
   const fs = (s) => s * fontSize;
 
   const MODULOS = [
@@ -59,6 +61,16 @@ export default function AdminHomeScreen({ navigation }) {
           ))}
         </View>
 
+        {/* Botón reactivar tutorial */}
+        <TouchableOpacity
+          style={[styles.tutorialBtn, { backgroundColor: theme.surface1, borderColor: theme.accent }]}
+          onPress={() => abrirTutorial('admin')}
+        >
+          <Text style={[styles.tutorialText, { color: theme.accent, fontSize: fs(15) }]}>
+            🎓 Ver tutorial de administración
+          </Text>
+        </TouchableOpacity>
+
         {/* Botón Cerrar Sesión */}
         <TouchableOpacity 
           style={[styles.logoutBtn, { backgroundColor: theme.surface1, borderColor: '#FF5A5F' }]} 
@@ -85,6 +97,8 @@ const styles = StyleSheet.create({
   cardInfo: { flex: 1 },
   cardTitle: { fontWeight: 'bold', marginBottom: 2 },
   cardDesc: {},
-  logoutBtn: { borderWidth: 1, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 12 },
+  tutorialBtn: { borderWidth: 1, borderRadius: 12, padding: 15, alignItems: 'center', marginTop: 12 },
+  tutorialText: { fontWeight: 'bold' },
+  logoutBtn: { borderWidth: 1, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 4 },
   logoutText: { color: '#FF5A5F', fontWeight: 'bold' },
 });

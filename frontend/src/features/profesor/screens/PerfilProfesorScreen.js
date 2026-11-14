@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Modal, TextInput, KeyboardAvoidingView, Platform, Switch
+  Modal, TextInput, KeyboardAvoidingView, Platform, Switch, Image, Alert
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
+import { useTutorial } from '../../../context/TutorialContext';
 import { categorias } from '../../../data/mockData';
 import ScreenHeader from '../../../components/ScreenHeader';
 import SeccionNotificaciones from '../../../components/SeccionNotificaciones';
@@ -20,8 +22,12 @@ export default function PerfilProfesorScreen() {
   const { user, logout } = useAuth();
   const { theme, mode, toggleMode, fontSize, setFontSize } = useTheme();
   const { getByCategoria } = useAlumnos();
+  const { abrirTutorial } = useTutorial();
 
   const totalAlumnos = categorias.reduce((acc, cat) => acc + getByCategoria(cat).length, 0);
+
+  // Foto de perfil del profesor
+  const [fotoPerfil, setFotoPerfil] = useState(null);
 
   // Configuración editable
   const [modalConfig, setModalConfig] = useState(false);
@@ -36,6 +42,41 @@ export default function PerfilProfesorScreen() {
 
   const guardarConfig = () => { setConfig(configDraft); setModalConfig(false); };
 
+  const abrirGaleria = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Se necesita acceso a tus fotos para cambiar la imagen de perfil.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setFotoPerfil(result.assets[0].uri);
+    }
+  };
+
+  const manejarOpcionesFoto = () => {
+    if (fotoPerfil) {
+      Alert.alert(
+        'Foto de perfil',
+        '¿Qué deseas hacer con tu foto de perfil?',
+        [
+          { text: 'Cambiar foto', onPress: abrirGaleria },
+          { text: 'Eliminar foto', onPress: () => setFotoPerfil(null), style: 'destructive' },
+          { text: 'Cancelar', style: 'cancel' },
+        ]
+      );
+    } else {
+      abrirGaleria();
+    }
+  };
+
   const fs = (size) => size * fontSize;
 
   return (
@@ -47,13 +88,23 @@ export default function PerfilProfesorScreen() {
 
         <View style={styles.inner}>
 
-          {/* Avatar */}
+          {/* Avatar con selector desde galería */}
           <View style={styles.profileHeader}>
-            <View style={[styles.avatar, { backgroundColor: theme.accentDark }]}>
-              <Text style={styles.avatarText}>
-                {user.nombre.split(' ').slice(0, 2).map((n) => n[0]).join('')}
-              </Text>
-            </View>
+            <TouchableOpacity onPress={manejarOpcionesFoto} style={styles.avatarWrapper} activeOpacity={0.8}>
+              {fotoPerfil ? (
+                <Image source={{ uri: fotoPerfil }} style={styles.avatarImage} />
+              ) : (
+                <View style={[styles.avatar, { backgroundColor: theme.accentDark }]}>
+                  <Text style={styles.avatarText}>
+                    {config.nombre.split(' ').slice(0, 2).map((n) => n[0]).join('')}
+                  </Text>
+                </View>
+              )}
+              <View style={[styles.cameraBadge, { backgroundColor: theme.accent }]}>
+                <Text style={{ fontSize: 12 }}>📷</Text>
+              </View>
+            </TouchableOpacity>
+
             <Text style={[styles.nombre, { color: theme.textPrim, fontSize: fs(22) }]}>{config.nombre}</Text>
             <Text style={[styles.rol, { color: theme.textSec, fontSize: fs(13) }]}>
               Profesor · {config.institucion}
@@ -161,6 +212,16 @@ export default function PerfilProfesorScreen() {
             </View>
           </View>
 
+          {/* Botón reactivar tutorial */}
+          <TouchableOpacity
+            style={[styles.tutorialBtn, { backgroundColor: theme.surface1, borderColor: theme.accent }]}
+            onPress={() => abrirTutorial('profesor')}
+          >
+            <Text style={[styles.tutorialText, { color: theme.accent, fontSize: fs(15) }]}>
+              🎓 Ver tutorial del profesor
+            </Text>
+          </TouchableOpacity>
+
           {/* Cerrar sesión */}
           <TouchableOpacity style={[styles.logoutBtn, { backgroundColor: theme.surface1, borderColor: '#FF5A5F' }]}
             onPress={logout}>
@@ -220,8 +281,14 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 60 },
   inner: { padding: 24 },
   profileHeader: { alignItems: 'center', marginBottom: 24 },
-  avatar: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  avatarWrapper: { position: 'relative', marginBottom: 12 },
+  avatar: { width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center' },
+  avatarImage: { width: 84, height: 84, borderRadius: 42 },
   avatarText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
+  cameraBadge: {
+    position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#0B0F14',
+  },
   nombre: { fontWeight: 'bold' },
   rol: { marginTop: 4 },
   rolBadge: { marginTop: 10, borderRadius: 20, paddingVertical: 4, paddingHorizontal: 14 },
@@ -247,6 +314,8 @@ const styles = StyleSheet.create({
   fontSizeRow: { flexDirection: 'row', gap: 10, paddingVertical: 12 },
   fontBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
   fontBtnText: { fontWeight: '500' },
+  tutorialBtn: { borderWidth: 1, borderRadius: 12, padding: 15, alignItems: 'center', marginTop: 8 },
+  tutorialText: { fontWeight: 'bold' },
   logoutBtn: { borderWidth: 1, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
   logoutText: { color: '#FF5A5F', fontWeight: 'bold' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },

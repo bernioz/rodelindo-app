@@ -11,6 +11,8 @@ import { AlumnosProvider } from './src/context/AlumnosContext';
 import { EventosProvider } from './src/context/EventosContext';
 import { ComunidadProvider } from './src/context/ComunidadContext';
 import { RecordatoriosProvider } from './src/context/RecordatoriosContext';
+import { TutorialProvider } from './src/context/TutorialContext';
+import TutorialModal from './src/components/TutorialModal';
 
 // Común
 import LoginScreen from './src/features/auth/screens/LoginScreen';
@@ -183,12 +185,15 @@ export default function App() {
         <EventosProvider>
           <ComunidadProvider>
             <AuthProvider>
-              <RecordatoriosProvider>
-                <NavigationContainer>
-                  <StatusBar style="auto" />
-                  <RootNavigator />
-                </NavigationContainer>
-              </RecordatoriosProvider>
+              <TutorialProvider>
+                <RecordatoriosProvider>
+                  <NavigationContainer>
+                    <StatusBar style="auto" />
+                    <RootNavigator />
+                    <TutorialModal />
+                  </NavigationContainer>
+                </RecordatoriosProvider>
+              </TutorialProvider>
             </AuthProvider>
           </ComunidadProvider>
         </EventosProvider>

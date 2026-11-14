@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAlumnos } from '../../../context/AlumnosContext';
+import { useTutorial } from '../../../context/TutorialContext';
 import { meses } from '../../../data/mockData';
 import { mesesAdeudados, textoDeuda, contarPagados } from '../../../utils/pagos';
 import ScreenHeader from '../../../components/ScreenHeader';
@@ -24,6 +25,7 @@ export default function AlumnoPerfilScreen() {
   const { user, logout } = useAuth();
   const { theme, mode, toggleMode, fontSize, setFontSize } = useTheme();
   const { alumnos, getByCategoria, actualizarFoto } = useAlumnos();
+  const { abrirTutorial } = useTutorial();
 
   const alumno = alumnos.find((a) => a.id === user.alumnoId);
 
@@ -68,7 +70,6 @@ export default function AlumnoPerfilScreen() {
 
   const guardarConfig = () => { setConfig(configDraft); setModalConfig(false); };
 
-  // La foto se guarda en el almacén compartido: así la ven también el profesor, el ranking y los compañeros
   const abrirGaleria = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -327,6 +328,16 @@ export default function AlumnoPerfilScreen() {
 
               <SeccionNotificaciones />
 
+              {/* Botón reactivar tutorial */}
+              <TouchableOpacity
+                style={[styles.tutorialBtn, { backgroundColor: theme.surface1, borderColor: theme.accent }]}
+                onPress={() => abrirTutorial('alumno')}
+              >
+                <Text style={[styles.tutorialText, { color: theme.accent, fontSize: fs(15) }]}>
+                  🎓 Ver tutorial guiado
+                </Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={[styles.logoutBtn, { backgroundColor: theme.surface1, borderColor: '#FF5A5F' }]}
                 onPress={logout}
@@ -428,6 +439,8 @@ const styles = StyleSheet.create({
   fontSizeRow: { flexDirection: 'row', gap: 10, paddingVertical: 12 },
   fontBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
   fontBtnText: { fontWeight: '500' },
+  tutorialBtn: { borderWidth: 1, borderRadius: 12, padding: 15, alignItems: 'center', marginTop: 8 },
+  tutorialText: { fontWeight: 'bold' },
   logoutBtn: { borderWidth: 1, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
   logoutText: { color: '#FF5A5F', fontWeight: 'bold' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
